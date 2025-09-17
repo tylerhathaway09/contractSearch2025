@@ -109,96 +109,34 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            {/* Saved Contracts */}
+            {/* Saved Contracts Quick Access */}
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Saved Contracts</CardTitle>
-                    <CardDescription>
-                      {savedContracts.length} contract{savedContracts.length !== 1 ? 's' : ''} saved
-                    </CardDescription>
-                  </div>
-                  {user.subscriptionTier === 'free' && (
-                    <Badge variant="outline" className="text-xs">
-                      Pro Feature
-                    </Badge>
-                  )}
-                </div>
+                <CardTitle>Saved Contracts</CardTitle>
+                <CardDescription>
+                  {savedContracts.length} contract{savedContracts.length !== 1 ? 's' : ''} saved
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                {user.subscriptionTier === 'pro' ? (
-                  savedContracts.length > 0 ? (
-                    <div className="space-y-4">
-                      {savedContracts.slice(0, 5).map((contract) => (
-                        <div key={contract.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Badge variant="secondary" className="text-xs">
-                                  {contract.source}
-                                </Badge>
-                                <Badge variant="outline" className="text-xs">
-                                  {contract.category}
-                                </Badge>
-                              </div>
-                              <h3 className="font-medium text-sm mb-1">
-                                <Link 
-                                  href={`/contract/${contract.id}`}
-                                  className="hover:text-blue-600 transition-colors"
-                                >
-                                  {contract.contractTitle}
-                                </Link>
-                              </h3>
-                              <p className="text-xs text-gray-600 mb-2">
-                                {contract.supplierName}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                Expires: {contract.endDate.toLocaleDateString()}
-                              </p>
-                            </div>
-                            <Button size="sm" variant="outline">
-                              Remove
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                      {savedContracts.length > 5 && (
-                        <div className="text-center">
-                          <Button variant="outline" size="sm">
-                            View All Saved Contracts
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">No saved contracts yet</h3>
-                      <p className="text-sm text-gray-600 mb-4">
-                        Start saving contracts to access them quickly from your dashboard.
-                      </p>
-                      <Button asChild>
-                        <Link href="/search">Search Contracts</Link>
-                      </Button>
-                    </div>
-                  )
-                ) : (
-                  <div className="text-center py-8">
-                    <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Upgrade to Pro</h3>
-                    <p className="text-sm text-gray-600 mb-4">
-                      Save and organize your favorite contracts with a Pro subscription.
-                    </p>
-                    <Button>
-                      Upgrade to Pro - $20/month
-                    </Button>
-                  </div>
-                )}
+                <div className="text-center py-8">
+                  <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                  </svg>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    {savedContracts.length > 0 ? 'View Your Saved Contracts' : 'No saved contracts yet'}
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    {savedContracts.length > 0 
+                      ? 'Access and manage all your saved contracts in one place.'
+                      : 'Start saving contracts to access them quickly from your dashboard.'
+                    }
+                  </p>
+                  <Button asChild>
+                    <Link href="/saved">
+                      {savedContracts.length > 0 ? 'View Saved Contracts' : 'Search Contracts'}
+                    </Link>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>

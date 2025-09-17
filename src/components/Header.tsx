@@ -4,9 +4,22 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { getCurrentUser } from '@/data/mockUsers';
+import { useState, useEffect } from 'react';
 
 export default function Header() {
-  const currentUser = getCurrentUser();
+  const [currentUser, setCurrentUser] = useState(getCurrentUser());
+
+  useEffect(() => {
+    // Update user state when component mounts or when saved contracts change
+    const updateUser = () => {
+      setCurrentUser(getCurrentUser());
+    };
+    
+    // Listen for changes (in a real app, this would be handled by a state management system)
+    const interval = setInterval(updateUser, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <header className="border-b bg-white">
@@ -37,7 +50,7 @@ export default function Header() {
               <>
                 {/* Saved Contracts Icon with Badge */}
                 <Link 
-                  href="/dashboard" 
+                  href="/saved" 
                   className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
                   title="Saved Contracts"
                 >
