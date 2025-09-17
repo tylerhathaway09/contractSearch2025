@@ -75,6 +75,34 @@ export default function SearchPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Search Section */}
+      <div className="mb-8">
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Search Contracts
+          </h1>
+          <p className="text-lg text-gray-600">
+            Find the perfect contract for your organization
+          </p>
+        </div>
+        
+        <Card className="max-w-2xl mx-auto">
+          <CardContent className="pt-6">
+            <form onSubmit={handleSearch} className="flex gap-2">
+              <Input
+                placeholder="Search contracts, suppliers, categories..."
+                value={filters.query || ''}
+                onChange={(e) => setFilters(prev => ({ ...prev, query: e.target.value }))}
+                className="text-lg py-3"
+              />
+              <Button type="submit" size="lg" className="px-8">
+                Search
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Filters Sidebar */}
         <div className="lg:w-1/4">
@@ -86,21 +114,6 @@ export default function SearchPage() {
               </Button>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Search Query */}
-              <div>
-                <Label htmlFor="search">Search</Label>
-                <form onSubmit={handleSearch} className="flex gap-2 mt-2">
-                  <Input
-                    id="search"
-                    placeholder="Search contracts..."
-                    value={filters.query || ''}
-                    onChange={(e) => setFilters(prev => ({ ...prev, query: e.target.value }))}
-                  />
-                  <Button type="submit" size="sm">
-                    Search
-                  </Button>
-                </form>
-              </div>
 
               {/* Source Filter */}
               <div>
@@ -179,17 +192,14 @@ export default function SearchPage() {
 
         {/* Search Results */}
         <div className="lg:w-3/4">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Contract Search Results
-            </h1>
-            {searchResults && (
+          {searchResults && (
+            <div className="mb-6">
               <p className="text-gray-600">
                 Found {searchResults.total} contracts
                 {filters.query && ` for "${filters.query}"`}
               </p>
-            )}
-          </div>
+            </div>
+          )}
 
           {isLoading ? (
             <div className="flex items-center justify-center py-12">

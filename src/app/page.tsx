@@ -21,13 +21,16 @@ export default function Home() {
             Search and compare contracts from E&I, Sourcewell, OMNIA Partners, and more. 
             Save time and find the best deals for your organization.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100" asChild>
-              <Link href="/search">Start Searching</Link>
-            </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600" asChild>
+          <div className="flex flex-col items-center gap-4">
+            <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg" asChild>
               <Link href="/signup">Get Started Free</Link>
             </Button>
+            <Link 
+              href="/search" 
+              className="text-blue-200 hover:text-white transition-colors underline text-lg"
+            >
+              Search Contracts
+            </Link>
           </div>
         </div>
       </section>
