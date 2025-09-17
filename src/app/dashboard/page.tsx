@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { getCurrentUser } from '@/data/mockUsers';
+import { getCurrentUser, logoutUser } from '@/data/mockUsers';
 import { getContractById } from '@/lib/contractUtils';
 import { User, Contract } from '@/types';
 
@@ -32,6 +32,11 @@ export default function DashboardPage() {
     setSavedContracts(contracts);
   }, [router]);
 
+  const handleLogout = () => {
+    logoutUser();
+    router.push('/');
+  };
+
   if (!user) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -47,9 +52,14 @@ export default function DashboardPage() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {user.name}
-          </h1>
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Welcome back, {user.name}
+            </h1>
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              Logout
+            </Button>
+          </div>
           <div className="flex items-center gap-4">
             <Badge 
               variant={user.subscriptionTier === 'pro' ? 'default' : 'secondary'}

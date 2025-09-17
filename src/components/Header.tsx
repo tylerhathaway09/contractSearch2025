@@ -20,18 +20,6 @@ export default function Header() {
             <span className="text-xl font-bold text-gray-900">ContractSearch</span>
           </Link>
 
-          {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
-            {currentUser && (
-              <Link 
-                href="/dashboard" 
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                Dashboard
-              </Link>
-            )}
-          </nav>
-
           {/* User Actions */}
           <div className="flex items-center space-x-4">
             {/* Search Icon */}
@@ -46,22 +34,33 @@ export default function Header() {
             </Link>
             
             {currentUser ? (
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-600">
-                    {currentUser.name}
-                  </span>
-                  <Badge 
-                    variant={currentUser.subscriptionTier === 'pro' ? 'default' : 'secondary'}
-                    className="text-xs"
-                  >
-                    {currentUser.subscriptionTier === 'pro' ? 'Pro' : 'Free'}
-                  </Badge>
-                </div>
-                <Button variant="outline" size="sm">
-                  Logout
+              <>
+                {/* Saved Contracts Icon with Badge */}
+                <Link 
+                  href="/dashboard" 
+                  className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
+                  title="Saved Contracts"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                  </svg>
+                  {currentUser.savedContracts.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-white text-black text-xs rounded-full w-5 h-5 flex items-center justify-center border border-gray-200">
+                      {currentUser.savedContracts.length}
+                    </span>
+                  )}
+                </Link>
+                
+                {/* Account Button */}
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/dashboard" className="flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Account
+                  </Link>
                 </Button>
-              </div>
+              </>
             ) : (
               <div className="flex items-center space-x-2">
                 <Button variant="ghost" size="sm" asChild>
