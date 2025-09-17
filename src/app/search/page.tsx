@@ -74,36 +74,41 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Search Section */}
-      <div className="mb-8">
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Search Contracts
+    <div className="min-h-screen">
+      {/* Search Hero Section */}
+      <section className="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-16">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-3xl md:text-4xl font-bold mb-8">
+            Every contract at every top supplier and government source
           </h1>
-          <p className="text-lg text-gray-600">
-            Find the perfect contract for your organization
-          </p>
-        </div>
-        
-        <Card className="max-w-2xl mx-auto">
-          <CardContent className="pt-6">
+          
+          <div className="max-w-2xl mx-auto">
             <form onSubmit={handleSearch} className="flex gap-2">
-              <Input
-                placeholder="Search contracts, suppliers, categories..."
-                value={filters.query || ''}
-                onChange={(e) => setFilters(prev => ({ ...prev, query: e.target.value }))}
-                className="text-lg py-3"
-              />
-              <Button type="submit" size="lg" className="px-8">
+              <div className="relative flex-1">
+                <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <Input
+                  placeholder="Search contract title, supplier, category..."
+                  value={filters.query || ''}
+                  onChange={(e) => setFilters(prev => ({ ...prev, query: e.target.value }))}
+                  className="text-lg py-4 pl-12 pr-4 bg-white text-black border-0 rounded-lg"
+                />
+              </div>
+              <Button type="submit" size="lg" className="px-8 py-4 bg-white text-black hover:bg-gray-100">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
                 Search
               </Button>
             </form>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </div>
+      </section>
 
-      <div className="flex flex-col lg:flex-row gap-8">
+      {/* Results Section */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex flex-col lg:flex-row gap-8">
         {/* Filters Sidebar */}
         <div className="lg:w-1/4">
           <Card>
@@ -284,6 +289,7 @@ export default function SearchPage() {
               </CardContent>
             </Card>
           )}
+        </div>
         </div>
       </div>
     </div>

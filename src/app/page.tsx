@@ -23,12 +23,20 @@ export default function Home() {
           </p>
           <div className="flex flex-col items-center gap-4">
             <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg" asChild>
-              <Link href="/signup">Get Started Free</Link>
+              <Link href="/signup">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+                Get Started Free
+              </Link>
             </Button>
             <Link 
               href="/search" 
-              className="text-blue-200 hover:text-white transition-colors underline text-lg"
+              className="text-blue-200 hover:text-white transition-colors underline text-lg flex items-center gap-2"
             >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
               Search Contracts
             </Link>
           </div>
@@ -137,7 +145,12 @@ export default function Home() {
 
           <div className="text-center mt-8">
             <Button size="lg" asChild>
-              <Link href="/search">View All Contracts</Link>
+              <Link href="/search">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                View All Contracts
+              </Link>
             </Button>
           </div>
         </div>
@@ -170,10 +183,20 @@ export default function Home() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100" asChild>
-              <Link href="/signup">Start Free Trial</Link>
+              <Link href="/signup">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+                Start Free Trial
+              </Link>
             </Button>
             <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600" asChild>
-              <Link href="/search">Browse Contracts</Link>
+              <Link href="/search">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Browse Contracts
+              </Link>
             </Button>
           </div>
         </div>
