@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { getCurrentUser, removeSavedContract, isContractSaved } from '@/data/mockUsers';
+import { getCurrentUser, removeSavedContract } from '@/data/mockUsers';
 import { getContractById } from '@/lib/contractUtils';
 import { User, Contract } from '@/types';
 
@@ -123,7 +123,7 @@ export default function SavedContractsPage() {
                 </svg>
                 <h3 className="text-lg font-medium mb-2">No saved contracts</h3>
                 <p className="text-sm mb-4">
-                  Start exploring contracts and save the ones you're interested in.
+                  Start exploring contracts and save the ones you&apos;re interested in.
                 </p>
                 <Button asChild>
                   <Link href="/search">Browse Contracts</Link>
