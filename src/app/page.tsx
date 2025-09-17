@@ -1,12 +1,39 @@
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { mockContracts, sources } from '@/data/mockContracts';
+import { getCurrentUser, saveContract, removeSavedContract, isContractSaved } from '@/data/mockUsers';
+import { useState } from 'react';
 
 export default function Home() {
   // Get some featured contracts for the homepage
   const featuredContracts = mockContracts.slice(0, 3);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleBookmarkClick = (contractId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+      // Redirect to signup if not logged in
+      window.location.href = '/signup';
+      return;
+    }
+    
+    // Toggle bookmark
+    if (isContractSaved(contractId)) {
+      removeSavedContract(contractId);
+    } else {
+      saveContract(contractId);
+    }
+    
+    // Force re-render to update bookmark state
+    setRefreshKey(prev => prev + 1);
+  };
 
   return (
     <div className="min-h-screen">
@@ -115,7 +142,7 @@ export default function Home() {
 
           <div className="grid md:grid-cols-3 gap-6">
             {featuredContracts.map((contract) => (
-              <Card key={contract.id} className="hover:shadow-lg transition-shadow">
+              <Card key={`${contract.id}-${refreshKey}`} className="hover:shadow-lg transition-shadow relative">
                 <CardHeader>
                   <div className="flex items-center justify-between mb-2">
                     <Badge variant="secondary">{contract.source}</Badge>
@@ -126,6 +153,26 @@ export default function Home() {
                     {contract.supplierName}
                   </CardDescription>
                 </CardHeader>
+                {/* Bookmark Icon */}
+                <button
+                  onClick={(e) => handleBookmarkClick(contract.id, e)}
+                  className="absolute top-4 right-4 p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                  title={isContractSaved(contract.id) ? "Remove from saved" : "Save contract"}
+                >
+                  <svg 
+                    className={`w-5 h-5 ${isContractSaved(contract.id) ? 'fill-blue-600 text-blue-600' : ''}`} 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" 
+                    />
+                  </svg>
+                </button>
                 <CardContent>
                   <p className="text-sm text-gray-700 mb-4 line-clamp-3">
                     {contract.contractDescription}

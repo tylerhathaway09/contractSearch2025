@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { SearchFilters, SearchResult } from '@/types';
 import { searchContracts } from '@/lib/contractUtils';
 import { categories, sources } from '@/data/mockContracts';
+import { getCurrentUser, saveContract, removeSavedContract, isContractSaved } from '@/data/mockUsers';
 import Link from 'next/link';
 
 export default function SearchPage() {
@@ -71,6 +72,28 @@ export default function SearchPage() {
       sortBy: 'relevance',
       sortOrder: 'desc',
     });
+  };
+
+  const handleBookmarkClick = (contractId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+      // Redirect to signup if not logged in
+      window.location.href = '/signup';
+      return;
+    }
+    
+    // Toggle bookmark
+    if (isContractSaved(contractId)) {
+      removeSavedContract(contractId);
+    } else {
+      saveContract(contractId);
+    }
+    
+    // Force re-render to update bookmark state
+    setSearchResults(prev => prev ? { ...prev } : null);
   };
 
   return (
@@ -219,7 +242,7 @@ export default function SearchPage() {
             <>
               <div className="space-y-4">
                 {searchResults.contracts.map((contract) => (
-                  <Card key={contract.id} className="hover:shadow-md transition-shadow">
+                  <Card key={contract.id} className="hover:shadow-md transition-shadow relative">
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -241,6 +264,26 @@ export default function SearchPage() {
                         </div>
                       </div>
                     </CardHeader>
+                    {/* Bookmark Icon */}
+                    <button
+                      onClick={(e) => handleBookmarkClick(contract.id, e)}
+                      className="absolute top-4 right-4 p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                      title={isContractSaved(contract.id) ? "Remove from saved" : "Save contract"}
+                    >
+                      <svg 
+                        className={`w-5 h-5 ${isContractSaved(contract.id) ? 'fill-blue-600 text-blue-600' : ''}`} 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={2} 
+                          d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" 
+                        />
+                      </svg>
+                    </button>
                     <CardContent>
                       <p className="text-sm text-gray-700 mb-4 line-clamp-2">
                         {contract.contractDescription}

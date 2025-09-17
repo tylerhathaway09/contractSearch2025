@@ -58,3 +58,33 @@ export const createUser = (email: string, name: string, _password: string): User
   setCurrentUser(newUser);
   return newUser;
 };
+
+export const saveContract = (contractId: string): boolean => {
+  const user = getCurrentUser();
+  if (!user) return false;
+  
+  if (!user.savedContracts.includes(contractId)) {
+    user.savedContracts.push(contractId);
+    return true;
+  }
+  return false;
+};
+
+export const removeSavedContract = (contractId: string): boolean => {
+  const user = getCurrentUser();
+  if (!user) return false;
+  
+  const index = user.savedContracts.indexOf(contractId);
+  if (index > -1) {
+    user.savedContracts.splice(index, 1);
+    return true;
+  }
+  return false;
+};
+
+export const isContractSaved = (contractId: string): boolean => {
+  const user = getCurrentUser();
+  if (!user) return false;
+  
+  return user.savedContracts.includes(contractId);
+};
