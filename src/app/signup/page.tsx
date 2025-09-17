@@ -36,9 +36,9 @@ export default function SignupPage() {
     }
 
     try {
-      const user = createUser(email, name, password);
+      createUser(email, name, password);
       router.push('/dashboard');
-    } catch (err) {
+    } catch {
       setError('An error occurred. Please try again.');
     } finally {
       setIsLoading(false);

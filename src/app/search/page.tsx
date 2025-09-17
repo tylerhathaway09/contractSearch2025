@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,7 +25,7 @@ export default function SearchPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
-  const performSearch = async (page: number = 1) => {
+  const performSearch = useCallback(async (page: number = 1) => {
     setIsLoading(true);
     try {
       const results = searchContracts(filters, page, 10);
@@ -34,11 +34,11 @@ export default function SearchPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [filters]);
 
   useEffect(() => {
     performSearch(1);
-  }, [filters]);
+  }, [performSearch]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,7 +146,7 @@ export default function SearchPage() {
                 <div className="mt-2 space-y-2">
                   <Select
                     value={filters.sortBy}
-                    onValueChange={(value: any) => setFilters(prev => ({ ...prev, sortBy: value }))}
+                    onValueChange={(value: 'relevance' | 'date' | 'supplier' | 'title') => setFilters(prev => ({ ...prev, sortBy: value }))}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -161,7 +161,7 @@ export default function SearchPage() {
                   
                   <Select
                     value={filters.sortOrder}
-                    onValueChange={(value: any) => setFilters(prev => ({ ...prev, sortOrder: value }))}
+                    onValueChange={(value: 'asc' | 'desc') => setFilters(prev => ({ ...prev, sortOrder: value }))}
                   >
                     <SelectTrigger>
                       <SelectValue />

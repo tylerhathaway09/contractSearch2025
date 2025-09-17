@@ -7,13 +7,14 @@ import { mockContracts } from '@/data/mockContracts';
 import Link from 'next/link';
 
 interface ContractPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default function ContractPage({ params }: ContractPageProps) {
-  const contract = getContractById(params.id);
+export default async function ContractPage({ params }: ContractPageProps) {
+  const { id } = await params;
+  const contract = getContractById(id);
   
   if (!contract) {
     notFound();
