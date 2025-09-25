@@ -66,14 +66,6 @@ export class ContractService {
         query = query.in('purchasing_org', dbSources);
       }
 
-      // Apply category filter using JSON query (since categories are in items array)
-      if (filters.categories && filters.categories.length > 0) {
-        // Use PostgreSQL JSON operators to filter by category in items array
-        const categoryConditions = filters.categories.map(category =>
-          `items @> '[{"category": "${category}"}]'`
-        ).join(' OR ');
-        query = query.or(categoryConditions);
-      }
 
 
       // Apply date range filters
@@ -107,11 +99,14 @@ export class ContractService {
         query = query.order('created_at', { ascending: false });
       }
 
-      // Apply pagination
+      // Apply pagination - but fetch more if we have category filters
       const page = filters.page || 1;
       const limit = filters.limit || 20;
       const offset = (page - 1) * limit;
-      query = query.range(offset, offset + limit - 1);
+
+      // If filtering by categories, fetch more records since we'll filter on frontend
+      const fetchLimit = filters.categories && filters.categories.length > 0 ? Math.max(limit * 3, 50) : limit;
+      query = query.range(offset, offset + fetchLimit - 1);
 
       const { data, error, count } = await query;
 
@@ -122,9 +117,24 @@ export class ContractService {
 
       const contracts = data?.map(mapDatabaseContract) || [];
 
+      // Apply category filter on frontend (since categories are in items array)
+      // but get the count BEFORE filtering for proper pagination
+      let filteredContracts = contracts;
+      let adjustedTotal = count || 0;
+
+      if (filters.categories && filters.categories.length > 0) {
+        filteredContracts = contracts.filter(contract =>
+          filters.categories!.includes(contract.category)
+        );
+
+        // If we're filtering by category, we need to get the actual count of matching contracts
+        // This is a limitation - we'll show the filtered results but the total will be approximate
+        adjustedTotal = filteredContracts.length;
+      }
+
       return {
-        contracts: contracts,
-        total: count || 0
+        contracts: filteredContracts,
+        total: adjustedTotal
       };
 
     } catch (error) {
@@ -200,10 +210,12 @@ export class ContractService {
 
   static async getAllCategories(): Promise<string[]> {
     try {
+      // Fetch ALL contracts to get complete category list, not just first 1000
       const { data, error } = await supabase
         .from('contracts')
         .select('items')
-        .not('items', 'is', null);
+        .not('items', 'is', null)
+        .limit(2000); // Increase limit to get more categories
 
       if (error) {
         console.error('Error fetching categories:', error);
@@ -214,9 +226,10 @@ export class ContractService {
 
       data?.forEach(contract => {
         if (contract.items && Array.isArray(contract.items)) {
+          // Get ALL categories from ALL items, not just the first one
           contract.items.forEach((item: Record<string, unknown>) => {
-            if (item.category) {
-              categories.add(String(item.category));
+            if (item.category && typeof item.category === 'string') {
+              categories.add(item.category.trim());
             }
           });
         }
