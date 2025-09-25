@@ -19,19 +19,16 @@ export default function SearchPage() {
   const [filters, setFilters] = useState<{
     query: string;
     source: string[];
-    category: string[];
     sortBy: string;
     sortOrder: string;
   }>({
     query: '',
     source: [],
-    category: [],
     sortBy: 'relevance',
     sortOrder: 'desc',
   });
   const [searchResults, setSearchResults] = useState<{contracts: Contract[], total: number} | null>(null);
   const [availableSources, setAvailableSources] = useState<string[]>([]);
-  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [searchLimitInfo, setSearchLimitInfo] = useState<{can_search: boolean, remaining: number, limit_count: number, is_pro: boolean} | null>(null);
@@ -57,7 +54,6 @@ export default function SearchPage() {
       const contractFilters: ContractFilters = {
         search: filters.query || undefined,
         sources: filters.source.length > 0 ? filters.source : undefined,
-        categories: filters.category.length > 0 ? filters.category : undefined,
         sortBy: filters.sortBy as ContractFilters['sortBy'],
         sortOrder: filters.sortOrder as 'asc' | 'desc',
         page,
@@ -95,16 +91,12 @@ export default function SearchPage() {
     }
   }, [filters, user]);
 
-  // Load available sources and categories on mount
+  // Load available sources on mount
   useEffect(() => {
     const loadFilterOptions = async () => {
       try {
-        const [sources, categories] = await Promise.all([
-          ContractService.getAllSources(),
-          ContractService.getAllCategories()
-        ]);
+        const sources = await ContractService.getAllSources();
         setAvailableSources(sources);
-        setAvailableCategories(categories);
       } catch (error) {
         console.error('Failed to load filter options:', error);
       }
@@ -145,21 +137,12 @@ export default function SearchPage() {
     }));
   };
 
-  const handleCategoryChange = (category: string, checked: boolean) => {
-    setFilters((prev) => ({
-      ...prev,
-      category: checked
-        ? [...(prev.category || []), category]
-        : (prev.category || []).filter((c: string) => c !== category)
-    }));
-  };
 
 
   const clearFilters = () => {
     setFilters({
       query: '',
       source: [],
-      category: [],
       sortBy: 'relevance',
       sortOrder: 'desc',
     });
@@ -350,24 +333,6 @@ export default function SearchPage() {
                 </div>
               </div>
 
-              {/* Category Filter */}
-              <div>
-                <Label className="text-sm font-medium">Category</Label>
-                <div className="mt-2 space-y-2 max-h-80 overflow-y-auto">
-                  {availableCategories.map((category) => (
-                    <div key={category} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`category-${category}`}
-                        checked={filters.category?.includes(category) || false}
-                        onCheckedChange={(checked) => handleCategoryChange(category, checked as boolean)}
-                      />
-                      <Label htmlFor={`category-${category}`} className="text-sm">
-                        {category}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
 
 
               {/* Sort Options */}

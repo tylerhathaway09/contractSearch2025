@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { Contract } from '@/types';
+import { getContractCategories } from './categoryExtractor';
 
 // Map database contract to frontend Contract type
 function mapDatabaseContract(dbContract: Record<string, unknown>): Contract {
@@ -35,7 +36,6 @@ function mapDatabaseContract(dbContract: Record<string, unknown>): Contract {
 export interface ContractFilters {
   search?: string;
   sources?: string[];
-  categories?: string[];
   dateRange?: {
     start?: string;
     end?: string;
@@ -100,14 +100,12 @@ export class ContractService {
         query = query.order('created_at', { ascending: false });
       }
 
-      // Apply pagination - but fetch more if we have category filters
+      // Apply pagination
       const page = filters.page || 1;
       const limit = filters.limit || 20;
       const offset = (page - 1) * limit;
 
-      // If filtering by categories, fetch more records since we'll filter on frontend
-      const fetchLimit = filters.categories && filters.categories.length > 0 ? Math.max(limit * 3, 50) : limit;
-      query = query.range(offset, offset + fetchLimit - 1);
+      query = query.range(offset, offset + limit - 1);
 
       const { data, error, count } = await query;
 
@@ -118,24 +116,9 @@ export class ContractService {
 
       const contracts = data?.map(mapDatabaseContract) || [];
 
-      // Apply category filter on frontend (since categories are in items array)
-      // but get the count BEFORE filtering for proper pagination
-      let filteredContracts = contracts;
-      let adjustedTotal = count || 0;
-
-      if (filters.categories && filters.categories.length > 0) {
-        filteredContracts = contracts.filter(contract =>
-          filters.categories!.includes(contract.category)
-        );
-
-        // If we're filtering by category, we need to get the actual count of matching contracts
-        // This is a limitation - we'll show the filtered results but the total will be approximate
-        adjustedTotal = filteredContracts.length;
-      }
-
       return {
-        contracts: filteredContracts,
-        total: adjustedTotal
+        contracts,
+        total: count || 0
       };
 
     } catch (error) {
@@ -209,43 +192,12 @@ export class ContractService {
     }
   }
 
-  static async getAllCategories(): Promise<string[]> {
-    try {
-      // Optimized approach: fetch ALL contracts without limit to get complete category list
-      // Remove the arbitrary 2000 limit to ensure we get all categories
-      const { data, error } = await supabase
-        .from('contracts')
-        .select('items')
-        .not('items', 'is', null);
-
-      if (error) {
-        console.error('Error fetching categories:', error);
-        return [];
-      }
-
-      const categories = new Set<string>();
-
-      // Process all contracts to extract every category
-      data?.forEach(contract => {
-        if (contract.items && Array.isArray(contract.items)) {
-          // Extract categories from ALL items in each contract
-          contract.items.forEach((item: Record<string, unknown>) => {
-            if (item.category && typeof item.category === 'string') {
-              const trimmedCategory = item.category.trim();
-              if (trimmedCategory.length > 0) {
-                categories.add(trimmedCategory);
-              }
-            }
-          });
-        }
-      });
-
-      return Array.from(categories).sort();
-    } catch (error) {
-      console.error('Contract service error:', error);
-      return [];
-    }
-  }
+  // Category filtering temporarily removed for MVP
+  // TODO: Implement proper data normalization across three sources before re-enabling
+  // static async getAllCategories(): Promise<string[]> {
+  //   // Implementation temporarily disabled
+  //   return [];
+  // }
 
 
   static async getRelatedContracts(contract: Contract, limit = 4): Promise<Contract[]> {
