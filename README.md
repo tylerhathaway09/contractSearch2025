@@ -1,37 +1,36 @@
-# ContractSearch MVP
+# Contract Search Platform
 
-A modern web application for aggregating and searching government contracts from multiple sources including E&I, Sourcewell, and OMNIA Partners.
+A production-ready government contract search platform aggregating 1330+ contracts from E&I, Sourcewell, and OMNIA Partners. Features user authentication, subscription management, contract bookmarking, and advanced search capabilities.
+
+**🌐 Live URL**: https://www.understoryanalytics.com
+**📊 Status**: Production Ready with Live Stripe Payments
 
 ## 🚀 Features
 
 ### Core Functionality
-- **Contract Search**: Advanced search with filters by source, category, date range, and supplier
-- **Contract Details**: Comprehensive contract information pages with related contracts
-- **User Authentication**: Sign up, login, and user profile management
-- **Subscription Tiers**: Free (10 searches/month) and Pro ($20/month, unlimited + saved contracts)
-- **User Dashboard**: Personal dashboard with saved contracts and usage statistics
+- **Advanced Contract Search**: Real-time search across 1330+ government contracts
+- **Multi-Source Aggregation**: E&I, Sourcewell, OMNIA Partners contracts
+- **User Authentication**: Complete signup/login with email verification
+- **Subscription Management**: Free (10 searches) / Pro (unlimited + bookmarks)
+- **Contract Bookmarking**: Save/organize contracts (Pro feature)
+- **User Dashboard**: Usage tracking, saved contracts, account management
+- **Mobile-First Design**: Responsive, professional UI/UX
 
-### Data Sources
-- E&I Cooperative Services
-- Sourcewell
-- OMNIA Partners
-- Other government contracting sources
-
-### Contract Information
-- Source and Contract ID
-- Supplier Name and Contact
-- Contract Title and Description
-- Category Classification
-- Start and End Dates
-- Direct links to original contracts
+### Production Data
+- **1330+ Real Contracts** from major government purchasing cooperatives
+- **Real-time Search** with advanced filtering and sorting
+- **Live Database** with Supabase PostgreSQL backend
+- **Production Payments** via Stripe integration
 
 ## 🛠 Tech Stack
 
 - **Frontend**: Next.js 14 with TypeScript
 - **UI Components**: shadcn/ui with Tailwind CSS
-- **Database**: Mock data (Supabase integration planned)
-- **Payments**: Mock implementation (Stripe integration planned)
-- **Authentication**: Mock system (Supabase Auth planned)
+- **Database**: Supabase (PostgreSQL with real-time subscriptions)
+- **Authentication**: Supabase Auth with email verification
+- **Payments**: Stripe (Live mode with webhooks)
+- **Hosting**: Vercel with custom domain
+- **Search**: Full-text search with indexing
 
 ## 📁 Project Structure
 
@@ -39,21 +38,24 @@ A modern web application for aggregating and searching government contracts from
 src/
 ├── app/                    # Next.js app router pages
 │   ├── contract/[id]/     # Dynamic contract detail pages
-│   ├── dashboard/         # User dashboard
-│   ├── login/            # Authentication pages
-│   ├── search/           # Contract search page
-│   └── signup/
+│   ├── dashboard/         # User dashboard and account management
+│   ├── saved/            # Saved contracts page (Pro users)
+│   ├── pricing/          # Subscription plans and payments
+│   ├── search/           # Advanced contract search
+│   ├── login/ & signup/  # Authentication pages
+│   └── api/webhooks/     # Stripe webhook handlers
 ├── components/           # Reusable UI components
 │   ├── ui/              # shadcn/ui components
-│   └── Header.tsx       # Main navigation
-├── data/                # Mock data and utilities
-│   ├── mockContracts.ts # Sample contract data
-│   └── mockUsers.ts     # User management
-├── lib/                 # Utility functions
-│   ├── contractUtils.ts # Search and contract utilities
+│   └── Header.tsx       # Navigation with auth status
+├── contexts/            # React contexts
+│   └── AuthContext.tsx  # User authentication state
+├── lib/                 # Core services and utilities
+│   ├── supabase.ts      # Database operations
+│   ├── contractService.ts # Contract search/filtering
+│   ├── stripe.ts        # Payment processing
 │   └── utils.ts         # General utilities
-└── types/               # TypeScript type definitions
-    └── index.ts         # Main type definitions
+└── types/               # TypeScript interfaces
+    └── supabase.ts      # Database type definitions
 ```
 
 ## 🚀 Getting Started
@@ -83,17 +85,13 @@ src/
 4. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
-### Demo Accounts
+### Live Application
 
-For testing purposes, you can use these demo accounts:
-
-**Free Account:**
-- Email: `demo@example.com`
-- Password: `password`
-
-**Pro Account:**
-- Email: `pro@example.com`
-- Password: `password`
+The application is deployed at **https://www.understoryanalytics.com** with:
+- **Real contract data** (1330+ contracts)
+- **Live Stripe payments** for Pro subscriptions
+- **Email verification** for new accounts
+- **Production database** with Supabase
 
 ## 📱 Pages & Features
 
@@ -128,17 +126,19 @@ For testing purposes, you can use these demo accounts:
 
 ## 💳 Subscription Tiers
 
-### Free Tier
+### Free Tier ($0/month)
 - 10 contract searches per month
-- Access to all contract sources
-- Advanced search filters
-- Basic contract details
+- Access to all 1330+ contracts
+- Advanced search and filtering
+- Contract detail pages
+- Search history tracking
 
-### Pro Tier ($20/month)
-- Unlimited contract searches
-- Save and organize contracts
-- Enhanced dashboard features
-- Priority support (future)
+### Pro Tier ($20/month or $192/year)
+- **Unlimited** contract searches
+- **Save and organize** contracts
+- Dedicated saved contracts page
+- Enhanced dashboard with bookmarks
+- Email notifications (coming soon)
 
 ## 🎨 Design System
 
@@ -184,55 +184,67 @@ Current implementation uses mock data located in:
 - `src/data/mockContracts.ts` - Sample contract data
 - `src/data/mockUsers.ts` - User management and authentication
 
-## 🚧 Future Enhancements
+## 🚧 Roadmap
 
-### Phase 2 Features
-- Real data integration with contract APIs
-- Supabase database integration
-- Stripe payment processing
+### Completed ✅
+- Production database with 1330+ real contracts
+- Live Stripe payment processing
+- User authentication with email verification
+- Contract bookmarking system
+- Advanced search with filtering
+- Mobile-responsive design
+- Custom domain deployment
+
+### Coming Soon 🔄
 - Email notifications for saved contracts
-- Advanced search with full-text search
-- Contract comparison tools
-
-### Phase 3 Features
-- Admin dashboard for data management
-- API for third-party integrations
-- Mobile app development
-- Advanced analytics and reporting
 - Contract expiration alerts
-- Bulk export functionality
+- Advanced search with full-text ranking
+- Contract comparison tools
+- Bulk export functionality (CSV/PDF)
+- Admin dashboard for data management
 
 ## 📊 Data Model
 
-### Contract Schema
-```typescript
-interface Contract {
-  id: string;
-  source: 'E&I' | 'Sourcewell' | 'OMNIA Partners' | 'Other';
-  contractId: string;
-  url: string;
-  supplierName: string;
-  contractTitle: string;
-  contractDescription: string;
-  category: string;
-  startDate: Date;
-  endDate: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
+### Database Schema (Supabase)
+
+**Contracts Table** (1330+ records)
+```sql
+CREATE TABLE contracts (
+  id UUID PRIMARY KEY,
+  contract_number VARCHAR,
+  contract_title TEXT,
+  vendor_name VARCHAR,
+  purchasing_org VARCHAR,
+  contract_start_date DATE,
+  contract_end_date DATE,
+  description TEXT,
+  items JSONB,
+  contact_info JSONB,
+  document_urls JSONB,
+  created_at TIMESTAMP DEFAULT NOW()
+);
 ```
 
-### User Schema
-```typescript
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  subscriptionTier: 'free' | 'pro';
-  searchCount: number;
-  savedContracts: string[];
-  createdAt: Date;
-}
+**Users Table**
+```sql
+CREATE TABLE users (
+  id UUID PRIMARY KEY REFERENCES auth.users(id),
+  email VARCHAR UNIQUE NOT NULL,
+  full_name VARCHAR,
+  subscription_status VARCHAR DEFAULT 'free',
+  stripe_customer_id VARCHAR,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+**Saved Contracts Table**
+```sql
+CREATE TABLE saved_contracts (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  contract_id UUID REFERENCES contracts(id),
+  saved_at TIMESTAMP DEFAULT NOW()
+);
 ```
 
 ## 🤝 Contributing
@@ -247,13 +259,31 @@ interface User {
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## 📈 Key Metrics
+
+- **1330+ Government Contracts** from E&I, Sourcewell, OMNIA Partners
+- **Production-Ready** with live payments and real user data
+- **Mobile-First Design** with 100% responsive layout
+- **Sub-second Search** with advanced filtering and pagination
+- **Live Stripe Integration** with webhooks and subscription management
+- **Secure Authentication** with email verification and RLS policies
+
+## 🚀 Deployment
+
+**Production URL**: https://www.understoryanalytics.com
+**Hosting**: Vercel with automatic deployments
+**Database**: Supabase with production scaling
+**Payments**: Stripe with live webhook integration
+**Domain**: Custom domain with SSL
+
 ## 🆘 Support
 
-For support and questions:
-- Create an issue in the repository
-- Contact the development team
-- Check the documentation
+For questions or issues:
+- Check the `PROJECT_DOCUMENTATION.md` for detailed technical information
+- Review `DEPLOYMENT_NEXT_STEPS.md` for production setup details
+- Create an issue in the repository for bugs or feature requests
 
 ---
 
-**Built with ❤️ using Next.js, TypeScript, and shadcn/ui**
+**Built with ❤️ using Next.js 14, TypeScript, Supabase, Stripe, and shadcn/ui**
+**Status: Production Ready with Live Payments** 🎉

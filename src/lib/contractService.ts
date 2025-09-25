@@ -3,28 +3,44 @@ import { Contract } from '@/types';
 
 // Map database contract to frontend Contract type
 function mapDatabaseContract(dbContract: Record<string, unknown>): Contract {
-  const category = (dbContract.items as Array<{category?: string}>)?.[0]?.category || 'Other';
-
   return {
     id: String(dbContract.id),
-    source: dbContract.purchasing_org as 'E&I' | 'Sourcewell' | 'OMNIA Partners',
+    source: mapSource(String(dbContract.source || '')),
     contractId: String(dbContract.contract_number || dbContract.id),
-    url: String((dbContract.document_urls as unknown[])?.[0] || ''),
-    supplierName: String(dbContract.vendor_name || 'Unknown'),
-    contractTitle: String(dbContract.contract_title || 'Untitled'),
+    url: String(dbContract.contract_url || dbContract.supplier_url || ''),
+    supplierName: String(dbContract.supplier_name || 'Unknown'),
+    contractTitle: String(dbContract.title || 'Untitled'),
     contractDescription: String(dbContract.description || ''),
-    category: category,
-    startDate: dbContract.contract_start_date ? new Date(String(dbContract.contract_start_date)) : new Date(),
-    endDate: dbContract.contract_end_date ? new Date(String(dbContract.contract_end_date)) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // Default 1 year from now
+    category: String(dbContract.category || 'Other'),
+    startDate: dbContract.start_date ? new Date(String(dbContract.start_date)) : new Date(),
+    endDate: dbContract.end_date ? new Date(String(dbContract.end_date)) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
     createdAt: new Date(String(dbContract.created_at)),
     updatedAt: new Date(String(dbContract.updated_at))
   };
+}
+
+// Map database source to frontend source
+function mapSource(source: string): 'E&I' | 'Sourcewell' | 'OMNIA Partners' | 'Other' {
+  const sourceMap: Record<string, 'E&I' | 'Sourcewell' | 'OMNIA Partners'> = {
+    'E&I': 'E&I',
+    'Sourcewell': 'Sourcewell',
+    'OMNIA': 'OMNIA Partners',
+    'OMNIA Partners': 'OMNIA Partners'
+  };
+  return sourceMap[source] || 'Other';
 }
 
 export interface ContractFilters {
   search?: string;
   sources?: string[];
   categories?: string[];
+  suppliers?: string[];
+  dateRange?: {
+    start?: string;
+    end?: string;
+  };
+  sortBy?: 'relevance' | 'date' | 'supplier' | 'title' | 'end_date';
+  sortOrder?: 'asc' | 'desc';
   page?: number;
   limit?: number;
 }
@@ -38,23 +54,65 @@ export class ContractService {
 
       // Apply search filter
       if (filters.search) {
-        query = query.or(`contract_title.ilike.%${filters.search}%,vendor_name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+        query = query.or(`title.ilike.%${filters.search}%,supplier_name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
       }
 
       // Apply source filter
       if (filters.sources && filters.sources.length > 0) {
-        query = query.in('purchasing_org', filters.sources);
+        // Map frontend source names to database source names
+        const dbSources = filters.sources.map(source => {
+          if (source === 'OMNIA Partners') return 'OMNIA';
+          return source;
+        });
+        query = query.in('source', dbSources);
+      }
+
+      // Apply category filter
+      if (filters.categories && filters.categories.length > 0) {
+        query = query.in('category', filters.categories);
+      }
+
+      // Apply supplier filter
+      if (filters.suppliers && filters.suppliers.length > 0) {
+        query = query.in('supplier_normalized', filters.suppliers);
+      }
+
+      // Apply date range filters
+      if (filters.dateRange?.start) {
+        query = query.gte('start_date', filters.dateRange.start);
+      }
+      if (filters.dateRange?.end) {
+        query = query.lte('end_date', filters.dateRange.end);
+      }
+
+      // Apply sorting
+      if (filters.sortBy) {
+        const ascending = filters.sortOrder === 'asc';
+        switch (filters.sortBy) {
+          case 'date':
+            query = query.order('created_at', { ascending });
+            break;
+          case 'supplier':
+            query = query.order('supplier_name', { ascending });
+            break;
+          case 'title':
+            query = query.order('title', { ascending });
+            break;
+          case 'end_date':
+            query = query.order('end_date', { ascending });
+            break;
+          default:
+            query = query.order('created_at', { ascending: false }); // Default relevance = newest first
+        }
+      } else {
+        query = query.order('created_at', { ascending: false });
       }
 
       // Apply pagination
       const page = filters.page || 1;
       const limit = filters.limit || 20;
       const offset = (page - 1) * limit;
-
       query = query.range(offset, offset + limit - 1);
-
-      // Order by creation date (newest first)
-      query = query.order('created_at', { ascending: false });
 
       const { data, error, count } = await query;
 
@@ -65,16 +123,8 @@ export class ContractService {
 
       const contracts = data?.map(mapDatabaseContract) || [];
 
-      // Apply category filter on frontend (since categories are in items array)
-      let filteredContracts = contracts;
-      if (filters.categories && filters.categories.length > 0) {
-        filteredContracts = contracts.filter(contract =>
-          filters.categories!.includes(contract.category)
-        );
-      }
-
       return {
-        contracts: filteredContracts,
+        contracts: contracts,
         total: count || 0
       };
 
@@ -129,15 +179,15 @@ export class ContractService {
     try {
       const { data, error } = await supabase
         .from('contracts')
-        .select('purchasing_org')
-        .not('purchasing_org', 'is', null);
+        .select('source')
+        .not('source', 'is', null);
 
       if (error) {
         console.error('Error fetching sources:', error);
         return [];
       }
 
-      const sources = [...new Set(data?.map(item => item.purchasing_org) || [])];
+      const sources = [...new Set(data?.map(item => mapSource(item.source)) || [])];
       return sources.sort();
     } catch (error) {
       console.error('Contract service error:', error);
@@ -149,27 +199,44 @@ export class ContractService {
     try {
       const { data, error } = await supabase
         .from('contracts')
-        .select('items')
-        .not('items', 'is', null);
+        .select('category')
+        .not('category', 'is', null);
 
       if (error) {
         console.error('Error fetching categories:', error);
         return [];
       }
 
-      const categories = new Set<string>();
+      const categories = [...new Set(data?.map(item => item.category).filter(Boolean) || [])];
+      return categories.sort();
+    } catch (error) {
+      console.error('Contract service error:', error);
+      return [];
+    }
+  }
 
-      data?.forEach(contract => {
-        if (contract.items && Array.isArray(contract.items)) {
-          contract.items.forEach((item: Record<string, unknown>) => {
-            if (item.category) {
-              categories.add(String(item.category));
-            }
-          });
+  static async getAllSuppliers(): Promise<Array<{supplier_name: string, supplier_normalized: string}>> {
+    try {
+      const { data, error } = await supabase
+        .from('contracts')
+        .select('supplier_name, supplier_normalized')
+        .not('supplier_name', 'is', null)
+        .order('supplier_name');
+
+      if (error) {
+        console.error('Error fetching suppliers:', error);
+        return [];
+      }
+
+      // Remove duplicates based on supplier_normalized
+      const uniqueSuppliers = data?.reduce((acc, item) => {
+        if (!acc.find(s => s.supplier_normalized === item.supplier_normalized)) {
+          acc.push(item);
         }
-      });
+        return acc;
+      }, [] as Array<{supplier_name: string, supplier_normalized: string}>) || [];
 
-      return Array.from(categories).sort();
+      return uniqueSuppliers;
     } catch (error) {
       console.error('Contract service error:', error);
       return [];
@@ -186,15 +253,16 @@ export class ContractService {
 
       // Try to find contracts from the same supplier first
       const { data: sameSupplier } = await query
-        .eq('vendor_name', contract.supplierName);
+        .eq('supplier_name', contract.supplierName);
 
       if (sameSupplier && sameSupplier.length >= limit) {
         return sameSupplier.map(mapDatabaseContract);
       }
 
       // If not enough from same supplier, get contracts from same source
+      const dbSource = contract.source === 'OMNIA Partners' ? 'OMNIA' : contract.source;
       const { data: sameSource } = await query
-        .eq('purchasing_org', contract.source);
+        .eq('source', dbSource);
 
       if (sameSource && sameSource.length > 0) {
         return sameSource.slice(0, limit).map(mapDatabaseContract);
