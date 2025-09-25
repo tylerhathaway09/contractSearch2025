@@ -66,6 +66,15 @@ export class ContractService {
         query = query.in('purchasing_org', dbSources);
       }
 
+      // Apply category filter using JSON query (since categories are in items array)
+      if (filters.categories && filters.categories.length > 0) {
+        // Use PostgreSQL JSON operators to filter by category in items array
+        const categoryConditions = filters.categories.map(category =>
+          `items @> '[{"category": "${category}"}]'`
+        ).join(' OR ');
+        query = query.or(categoryConditions);
+      }
+
 
       // Apply date range filters
       if (filters.dateRange?.start) {
@@ -113,16 +122,8 @@ export class ContractService {
 
       const contracts = data?.map(mapDatabaseContract) || [];
 
-      // Apply category filter on frontend (since categories are in items array)
-      let filteredContracts = contracts;
-      if (filters.categories && filters.categories.length > 0) {
-        filteredContracts = contracts.filter(contract =>
-          filters.categories!.includes(contract.category)
-        );
-      }
-
       return {
-        contracts: filteredContracts,
+        contracts: contracts,
         total: count || 0
       };
 
