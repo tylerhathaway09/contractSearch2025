@@ -35,7 +35,6 @@ export interface ContractFilters {
   search?: string;
   sources?: string[];
   categories?: string[];
-  suppliers?: string[];
   dateRange?: {
     start?: string;
     end?: string;
@@ -67,10 +66,6 @@ export class ContractService {
         query = query.in('purchasing_org', dbSources);
       }
 
-      // Apply supplier filter (using vendor_name since supplier_normalized doesn't exist)
-      if (filters.suppliers && filters.suppliers.length > 0) {
-        query = query.in('vendor_name', filters.suppliers);
-      }
 
       // Apply date range filters
       if (filters.dateRange?.start) {
@@ -233,32 +228,6 @@ export class ContractService {
     }
   }
 
-  static async getAllSuppliers(): Promise<Array<{supplier_name: string, supplier_normalized: string}>> {
-    try {
-      const { data, error } = await supabase
-        .from('contracts')
-        .select('vendor_name')
-        .not('vendor_name', 'is', null)
-        .order('vendor_name');
-
-      if (error) {
-        console.error('Error fetching suppliers:', error);
-        return [];
-      }
-
-      // Remove duplicates and create normalized names
-      const uniqueSuppliers = [...new Set(data?.map(item => item.vendor_name) || [])]
-        .map(vendor_name => ({
-          supplier_name: vendor_name,
-          supplier_normalized: vendor_name // Use actual vendor name for filtering since no normalized field exists
-        }));
-
-      return uniqueSuppliers;
-    } catch (error) {
-      console.error('Contract service error:', error);
-      return [];
-    }
-  }
 
   static async getRelatedContracts(contract: Contract, limit = 4): Promise<Contract[]> {
     try {

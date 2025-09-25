@@ -20,21 +20,18 @@ export default function SearchPage() {
     query: string;
     source: string[];
     category: string[];
-    supplier: string[];
     sortBy: string;
     sortOrder: string;
   }>({
     query: '',
     source: [],
     category: [],
-    supplier: [],
     sortBy: 'relevance',
     sortOrder: 'desc',
   });
   const [searchResults, setSearchResults] = useState<{contracts: Contract[], total: number} | null>(null);
   const [availableSources, setAvailableSources] = useState<string[]>([]);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
-  const [availableSuppliers, setAvailableSuppliers] = useState<Array<{supplier_name: string, supplier_normalized: string}>>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [searchLimitInfo, setSearchLimitInfo] = useState<{can_search: boolean, remaining: number, limit_count: number, is_pro: boolean} | null>(null);
@@ -61,7 +58,6 @@ export default function SearchPage() {
         search: filters.query || undefined,
         sources: filters.source.length > 0 ? filters.source : undefined,
         categories: filters.category.length > 0 ? filters.category : undefined,
-        suppliers: filters.supplier.length > 0 ? filters.supplier : undefined,
         sortBy: filters.sortBy as ContractFilters['sortBy'],
         sortOrder: filters.sortOrder as 'asc' | 'desc',
         page,
@@ -103,14 +99,12 @@ export default function SearchPage() {
   useEffect(() => {
     const loadFilterOptions = async () => {
       try {
-        const [sources, categories, suppliers] = await Promise.all([
+        const [sources, categories] = await Promise.all([
           ContractService.getAllSources(),
-          ContractService.getAllCategories(),
-          ContractService.getAllSuppliers()
+          ContractService.getAllCategories()
         ]);
         setAvailableSources(sources);
         setAvailableCategories(categories);
-        setAvailableSuppliers(suppliers);
       } catch (error) {
         console.error('Failed to load filter options:', error);
       }
@@ -160,21 +154,12 @@ export default function SearchPage() {
     }));
   };
 
-  const handleSupplierChange = (supplier: string, checked: boolean) => {
-    setFilters((prev) => ({
-      ...prev,
-      supplier: checked
-        ? [...(prev.supplier || []), supplier]
-        : (prev.supplier || []).filter((s: string) => s !== supplier)
-    }));
-  };
 
   const clearFilters = () => {
     setFilters({
       query: '',
       source: [],
       category: [],
-      supplier: [],
       sortBy: 'relevance',
       sortOrder: 'desc',
     });
@@ -368,7 +353,7 @@ export default function SearchPage() {
               {/* Category Filter */}
               <div>
                 <Label className="text-sm font-medium">Category</Label>
-                <div className="mt-2 space-y-2 max-h-48 overflow-y-auto">
+                <div className="mt-2 space-y-2 max-h-80 overflow-y-auto">
                   {availableCategories.map((category) => (
                     <div key={category} className="flex items-center space-x-2">
                       <Checkbox
@@ -384,27 +369,6 @@ export default function SearchPage() {
                 </div>
               </div>
 
-              {/* Supplier Filter */}
-              <div>
-                <Label className="text-sm font-medium">Supplier</Label>
-                <div className="mt-2 space-y-2 max-h-48 overflow-y-auto">
-                  {availableSuppliers.slice(0, 20).map((supplier) => (
-                    <div key={supplier.supplier_name} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`supplier-${supplier.supplier_name}`}
-                        checked={filters.supplier?.includes(supplier.supplier_name) || false}
-                        onCheckedChange={(checked) => handleSupplierChange(supplier.supplier_name, checked as boolean)}
-                      />
-                      <Label htmlFor={`supplier-${supplier.supplier_name}`} className="text-sm">
-                        {supplier.supplier_name}
-                      </Label>
-                    </div>
-                  ))}
-                  {availableSuppliers.length > 20 && (
-                    <p className="text-xs text-gray-500 italic">Showing top 20 suppliers</p>
-                  )}
-                </div>
-              </div>
 
               {/* Sort Options */}
               <div>
