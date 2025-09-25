@@ -1,11 +1,26 @@
 import { Contract, SearchFilters, SearchResult } from '@/types';
 import { mockContracts } from '@/data/mockContracts';
+import { incrementSearchCount, canPerformSearch } from '@/data/mockUsers';
 
 export const searchContracts = (
   filters: SearchFilters,
   page: number = 1,
   limit: number = 10
 ): SearchResult => {
+  // Check if user can perform search (for free users with limits)
+  if (!canPerformSearch()) {
+    return {
+      contracts: [],
+      total: 0,
+      page,
+      limit,
+      hasMore: false,
+    };
+  }
+
+  // Increment search count for the user
+  incrementSearchCount();
+
   let filteredContracts = [...mockContracts];
 
   // Apply search query

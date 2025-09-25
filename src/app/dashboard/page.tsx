@@ -6,38 +6,76 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { getCurrentUser, logoutUser } from '@/data/mockUsers';
-import { getContractById } from '@/lib/contractUtils';
-import { User, Contract } from '@/types';
+import { getSavedContracts, getSearchLimitInfo } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
+import { Contract } from '@/types';
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<User | null>(null);
+  const { user, profile, signOut } = useAuth();
   const [savedContracts, setSavedContracts] = useState<Contract[]>([]);
+  const [searchLimitInfo, setSearchLimitInfo] = useState<{can_search: boolean, remaining: number, limit_count: number, is_pro: boolean} | null>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const currentUser = getCurrentUser();
-    if (!currentUser) {
+    if (!user) {
       router.push('/login');
       return;
     }
 
-    setUser(currentUser);
-    
-    // Load saved contracts
-    const contracts = currentUser.savedContracts
-      .map(id => getContractById(id))
-      .filter((contract): contract is Contract => contract !== undefined);
-    
-    setSavedContracts(contracts);
-  }, [router]);
+    const loadDashboardData = async () => {
+      try {
+        setLoading(true);
 
-  const handleLogout = () => {
-    logoutUser();
-    router.push('/');
+        // Load search limit info
+        const { data: limitInfo, error: limitError } = await getSearchLimitInfo(user.id);
+        if (!limitError) {
+          setSearchLimitInfo(limitInfo);
+        }
+
+        // Load saved contracts
+        const { data: savedData, error: savedError } = await getSavedContracts(user.id);
+        if (!savedError && savedData) {
+          // Map the saved contracts data to Contract type
+          const contracts: Contract[] = savedData.map((saved: {contracts: Record<string, unknown>}) => {
+            const contract = saved.contracts;
+            return {
+              id: String(contract.id),
+              source: contract.purchasing_org as 'E&I' | 'Sourcewell' | 'OMNIA Partners',
+              contractId: String(contract.contract_number || contract.id),
+              url: String(contract.document_urls?.[0] || '#'),
+              supplierName: String(contract.vendor_name || 'Unknown Supplier'),
+              contractTitle: String(contract.contract_title || 'Untitled Contract'),
+              contractDescription: String(contract.description || 'No description available'),
+              category: String((contract.items as any)?.[0]?.category || 'Other'),
+              startDate: contract.contract_start_date ? new Date(contract.contract_start_date) : new Date(),
+              endDate: contract.contract_end_date ? new Date(contract.contract_end_date) : new Date(),
+              createdAt: new Date(contract.created_at),
+              updatedAt: new Date(contract.updated_at || contract.created_at),
+            };
+          });
+          setSavedContracts(contracts);
+        }
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, [user, router]);
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      router.push('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
-  if (!user) {
+  if (!user || loading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
@@ -47,6 +85,9 @@ export default function DashboardPage() {
     );
   }
 
+  const displayName = profile?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'User';
+  const userEmail = user?.email || 'No email';
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-6xl mx-auto">
@@ -54,22 +95,22 @@ export default function DashboardPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             <h1 className="text-3xl font-bold text-gray-900">
-              Welcome back, {user.name}
+              Welcome back, {displayName}
             </h1>
             <Button variant="outline" size="sm" onClick={handleLogout}>
               Logout
             </Button>
           </div>
           <div className="flex items-center gap-4">
-            <Badge 
-              variant={user.subscriptionTier === 'pro' ? 'default' : 'secondary'}
+            <Badge
+              variant={profile?.subscription_status === 'pro' ? 'default' : 'secondary'}
               className="text-sm"
             >
-              {user.subscriptionTier === 'pro' ? 'Pro Plan' : 'Free Plan'}
+              {profile?.subscription_status === 'pro' ? 'Pro Plan' : 'Free Plan'}
             </Badge>
             <span className="text-sm text-gray-600">
-              {user.subscriptionTier === 'free' 
-                ? `${user.searchCount}/10 searches used this month`
+              {profile?.subscription_status === 'free'
+                ? `0/${searchLimitInfo?.limit_count || 10} searches used this month`
                 : 'Unlimited searches'
               }
             </span>
@@ -151,21 +192,23 @@ export default function DashboardPage() {
               <CardContent className="space-y-3">
                 <div>
                   <label className="text-sm font-medium text-gray-500">Name</label>
-                  <p className="text-sm text-gray-900">{user.name}</p>
+                  <p className="text-sm text-gray-900">{displayName}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Email</label>
-                  <p className="text-sm text-gray-900">{user.email}</p>
+                  <p className="text-sm text-gray-900">{userEmail}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Plan</label>
                   <div className="flex items-center gap-2">
-                    <Badge variant={user.subscriptionTier === 'pro' ? 'default' : 'secondary'}>
-                      {user.subscriptionTier === 'pro' ? 'Pro' : 'Free'}
+                    <Badge variant={profile?.subscription_status === 'pro' ? 'default' : 'secondary'}>
+                      {profile?.subscription_status === 'pro' ? 'Pro' : 'Free'}
                     </Badge>
-                    {user.subscriptionTier === 'free' && (
-                      <Button size="sm" variant="outline">
-                        Upgrade
+                    {profile?.subscription_status === 'free' && (
+                      <Button size="sm" variant="outline" asChild>
+                        <Link href="/pricing">
+                          Upgrade
+                        </Link>
                       </Button>
                     )}
                   </div>
@@ -173,7 +216,7 @@ export default function DashboardPage() {
                 <div>
                   <label className="text-sm font-medium text-gray-500">Member Since</label>
                   <p className="text-sm text-gray-900">
-                    {user.createdAt.toLocaleDateString()}
+                    {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}
                   </p>
                 </div>
               </CardContent>
@@ -190,16 +233,24 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-gray-600">Searches</span>
                       <span className="text-sm font-medium">
-                        {user.searchCount}
-                        {user.subscriptionTier === 'free' && '/10'}
+                        0
+                        {searchLimitInfo?.limit_count && `/${searchLimitInfo.limit_count}`}
                       </span>
                     </div>
-                    {user.subscriptionTier === 'free' && (
+                    {searchLimitInfo?.limit_count && (
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full" 
-                          style={{ width: `${(user.searchCount / 10) * 100}%` }}
+                        <div
+                          className={`h-2 rounded-full ${
+                            (searchLimitInfo.remaining || 0) <= 2 ? 'bg-red-500' :
+                            (searchLimitInfo.remaining || 0) <= 5 ? 'bg-yellow-500' : 'bg-blue-600'
+                          }`}
+                          style={{ width: `0%` }}
                         ></div>
+                      </div>
+                    )}
+                    {searchLimitInfo?.remaining !== undefined && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        {searchLimitInfo.remaining} searches remaining
                       </div>
                     )}
                   </div>
@@ -207,10 +258,20 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">Saved Contracts</span>
                       <span className="text-sm font-medium">
-                        {user.subscriptionTier === 'pro' ? savedContracts.length : 'Pro Only'}
+                        {profile?.subscription_status === 'pro' ? savedContracts.length : 'Pro Only'}
                       </span>
                     </div>
                   </div>
+
+                  {profile?.subscription_status === 'free' && (
+                    <div className="pt-4 border-t">
+                      <Button size="sm" className="w-full" asChild>
+                        <Link href="/pricing">
+                          Upgrade to Pro for Unlimited Access
+                        </Link>
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -228,14 +289,14 @@ export default function DashboardPage() {
                       Account created
                     </div>
                     <div className="text-xs text-gray-500 ml-4">
-                      {user.createdAt.toLocaleDateString()}
+                      {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}
                     </div>
                   </div>
-                  {user.searchCount > 0 && (
+                  {false && (
                     <div className="text-sm text-gray-600">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        {user.searchCount} search{user.searchCount !== 1 ? 'es' : ''} performed
+                        0 searches performed
                       </div>
                       <div className="text-xs text-gray-500 ml-4">
                         This month

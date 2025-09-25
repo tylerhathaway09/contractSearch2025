@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { loginUser } from '@/data/mockUsers';
+import { signIn, createUserProfile } from '@/lib/supabase';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -22,18 +22,36 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const user = loginUser(email, password);
-      if (user) {
-        router.push('/dashboard');
-      } else {
-        setError('Invalid email or password');
+      const { data, error } = await signIn(email, password);
+      
+      if (error) {
+        setError(error.message);
+        return;
       }
-    } catch {
+
+      if (data.user) {
+        // Try to create user profile if it doesn't exist (for new users who signed up elsewhere)
+        try {
+          await createUserProfile(
+            data.user.id,
+            data.user.email!,
+            data.user.user_metadata?.name || data.user.email!.split('@')[0]
+          );
+        } catch (profileError) {
+          // Ignore profile creation errors for existing users - this is expected
+          console.debug('Profile already exists or creation skipped:', profileError);
+        }
+
+        router.push('/dashboard');
+      }
+    } catch (err) {
       setError('An error occurred. Please try again.');
+      console.error('Login error:', err);
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -100,26 +118,6 @@ export default function LoginPage() {
                 {isLoading ? 'Signing in...' : 'Sign in'}
               </Button>
             </form>
-
-            <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Demo accounts</span>
-                </div>
-              </div>
-
-              <div className="mt-4 space-y-2">
-                <div className="text-xs text-gray-500">
-                  <strong>Free Account:</strong> demo@example.com / password
-                </div>
-                <div className="text-xs text-gray-500">
-                  <strong>Pro Account:</strong> pro@example.com / password
-                </div>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>

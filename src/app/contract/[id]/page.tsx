@@ -2,8 +2,8 @@ import { notFound } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { getContractById, getRelatedContracts, formatDateRange, getDaysUntilExpiration, isContractExpiringSoon } from '@/lib/contractUtils';
-import { mockContracts } from '@/data/mockContracts';
+import { ContractService } from '@/lib/contractService';
+import { formatDateRange, getDaysUntilExpiration, isContractExpiringSoon } from '@/lib/contractUtils';
 import Link from 'next/link';
 
 interface ContractPageProps {
@@ -14,13 +14,13 @@ interface ContractPageProps {
 
 export default async function ContractPage({ params }: ContractPageProps) {
   const { id } = await params;
-  const contract = getContractById(id);
-  
+  const contract = await ContractService.getContractById(id);
+
   if (!contract) {
     notFound();
   }
 
-  const relatedContracts = getRelatedContracts(contract);
+  const relatedContracts = await ContractService.getRelatedContracts(contract);
   const daysUntilExpiration = getDaysUntilExpiration(contract.endDate);
   const isExpiringSoon = isContractExpiringSoon(contract.endDate);
 
@@ -228,9 +228,4 @@ export default async function ContractPage({ params }: ContractPageProps) {
   );
 }
 
-// Generate static params for all contracts
-export async function generateStaticParams() {
-  return mockContracts.map((contract) => ({
-    id: contract.id,
-  }));
-}
+// Dynamic route - contracts will be fetched on demand

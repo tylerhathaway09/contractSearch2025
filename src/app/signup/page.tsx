@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { createUser } from '@/data/mockUsers';
+import { signUp, createUserProfile } from '@/lib/supabase';
 
 export default function SignupPage() {
   const [name, setName] = useState('');
@@ -16,12 +16,14 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setSuccess('');
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
@@ -36,14 +38,42 @@ export default function SignupPage() {
     }
 
     try {
-      createUser(email, name, password);
-      router.push('/dashboard');
-    } catch {
+      const { data, error } = await signUp(email, password, name);
+      
+      if (error) {
+        setError(error.message);
+        return;
+      }
+
+      if (data.user) {
+        // Create user profile
+        const { error: profileError } = await createUserProfile(
+          data.user.id,
+          email,
+          name
+        );
+
+        if (profileError) {
+          console.error('Profile creation error:', profileError);
+          setError('Account created but profile setup failed. Please try logging in.');
+          return;
+        }
+
+        // Check if email confirmation is required
+        if (data.user.email_confirmed_at) {
+          router.push('/dashboard');
+        } else {
+          setSuccess('Please check your email and click the confirmation link to complete your registration.');
+        }
+      }
+    } catch (err) {
       setError('An error occurred. Please try again.');
+      console.error('Signup error:', err);
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -77,6 +107,12 @@ export default function SignupPage() {
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
                   {error}
+                </div>
+              )}
+
+              {success && (
+                <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md text-sm">
+                  {success}
                 </div>
               )}
 

@@ -32,6 +32,7 @@ export const getCurrentUser = () => currentUser;
 
 export const loginUser = (email: string, password: string): User | null => {
   // Mock login - in real app, this would validate credentials
+  // Password is intentionally not validated in mock implementation
   const user = mockUsers.find(u => u.email === email);
   if (user) {
     setCurrentUser(user);
@@ -45,6 +46,7 @@ export const logoutUser = () => {
 };
 
 export const createUser = (email: string, name: string, password: string): User => {
+  // Password is intentionally not stored/validated in mock implementation
   const newUser: User = {
     id: (mockUsers.length + 1).toString(),
     email,
@@ -87,4 +89,51 @@ export const isContractSaved = (contractId: string): boolean => {
   if (!user) return false;
   
   return user.savedContracts.includes(contractId);
+};
+
+export const incrementSearchCount = (): boolean => {
+  const user = getCurrentUser();
+  if (!user) return false;
+  
+  // Pro users have unlimited searches
+  if (user.subscriptionTier === 'pro') {
+    user.searchCount += 1;
+    return true;
+  }
+  
+  // Free users have a limit of 10 searches per month
+  if (user.subscriptionTier === 'free' && user.searchCount < 10) {
+    user.searchCount += 1;
+    return true;
+  }
+  
+  return false; // Free user has reached their limit
+};
+
+export const canPerformSearch = (): boolean => {
+  const user = getCurrentUser();
+  if (!user) return false;
+  
+  // Pro users can always search
+  if (user.subscriptionTier === 'pro') return true;
+  
+  // Free users can search if under limit
+  return user.subscriptionTier === 'free' && user.searchCount < 10;
+};
+
+export const getSearchLimitInfo = (): { canSearch: boolean; remaining: number; limit: number } => {
+  const user = getCurrentUser();
+  if (!user) {
+    return { canSearch: false, remaining: 0, limit: 0 };
+  }
+  
+  if (user.subscriptionTier === 'pro') {
+    return { canSearch: true, remaining: -1, limit: -1 }; // -1 means unlimited
+  }
+  
+  const limit = 10;
+  const remaining = Math.max(0, limit - user.searchCount);
+  const canSearch = user.searchCount < limit;
+  
+  return { canSearch, remaining, limit };
 };

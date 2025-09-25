@@ -6,39 +6,79 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { getCurrentUser, removeSavedContract } from '@/data/mockUsers';
-import { getContractById } from '@/lib/contractUtils';
-import { User, Contract } from '@/types';
+import { getSavedContracts, removeSavedContract } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
+import { Contract } from '@/types';
 
 export default function SavedContractsPage() {
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useAuth();
   const [savedContracts, setSavedContracts] = useState<Contract[]>([]);
+  const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const router = useRouter();
 
   useEffect(() => {
-    const currentUser = getCurrentUser();
-    if (!currentUser) {
+    if (!user) {
       router.push('/login');
       return;
     }
 
-    setUser(currentUser);
-    
-    // Load saved contracts
-    const contracts = currentUser.savedContracts
-      .map(id => getContractById(id))
-      .filter((contract): contract is Contract => contract !== undefined);
-    
-    setSavedContracts(contracts);
-  }, [router, refreshKey]);
+    const loadSavedContracts = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await getSavedContracts(user.id);
 
-  const handleRemoveContract = (contractId: string) => {
-    removeSavedContract(contractId);
-    setRefreshKey(prev => prev + 1);
+        if (error) {
+          console.error('Error loading saved contracts:', error);
+          return;
+        }
+
+        // Map the saved contracts data to Contract type
+        const contracts: Contract[] = (data || []).map((saved: {contracts: Record<string, unknown>}) => {
+          const contract = saved.contracts;
+          return {
+            id: contract.id,
+            source: contract.purchasing_org as 'E&I' | 'Sourcewell' | 'OMNIA Partners',
+            contractId: contract.contract_number || contract.id,
+            url: contract.document_urls?.[0] || '#',
+            supplierName: contract.vendor_name || 'Unknown Supplier',
+            contractTitle: contract.contract_title || 'Untitled Contract',
+            contractDescription: contract.description || 'No description available',
+            category: contract.items?.[0]?.category || 'Other',
+            startDate: contract.contract_start_date ? new Date(contract.contract_start_date) : new Date(),
+            endDate: contract.contract_end_date ? new Date(contract.contract_end_date) : new Date(),
+            createdAt: new Date(contract.created_at),
+            updatedAt: new Date(contract.updated_at || contract.created_at),
+          };
+        });
+
+        setSavedContracts(contracts);
+      } catch (error) {
+        console.error('Error loading saved contracts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSavedContracts();
+  }, [user, router, refreshKey]);
+
+  const handleRemoveContract = async (contractId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await removeSavedContract(user.id, contractId);
+      if (error) {
+        console.error('Error removing saved contract:', error);
+        return;
+      }
+      setRefreshKey(prev => prev + 1);
+    } catch (error) {
+      console.error('Error removing saved contract:', error);
+    }
   };
 
-  if (!user) {
+  if (!user || loading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">

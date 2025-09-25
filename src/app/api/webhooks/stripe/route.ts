@@ -78,12 +78,13 @@ async function handleSubscriptionCreated(subscription: Record<string, unknown>) 
   try {
     const customerId = subscription.customer;
     const subscriptionId = subscription.id;
-    const currentPeriodEnd = new Date(subscription.current_period_end * 1000).toISOString();
+    const currentPeriodEnd = new Date((subscription.current_period_end as number) * 1000).toISOString();
 
     // Determine subscription status based on Stripe price ID
     let subscriptionStatus = 'free';
-    if (subscription.items?.data?.length > 0) {
-      const priceId = subscription.items.data[0].price.id;
+    const items = subscription.items as {data: Array<{price: {id: string}}>} | undefined;
+    if (items?.data?.length && items.data.length > 0) {
+      const priceId = items.data[0].price.id;
       // Live price IDs for Pro tier
       if (priceId === 'price_1SB5Y8I8PNaNPVmz4WzNzujr' || priceId === 'price_1SB5Y7I8PNaNPVmz5GCOeIEm') {
         subscriptionStatus = 'pro';
@@ -118,12 +119,13 @@ async function handleSubscriptionUpdated(subscription: Record<string, unknown>) 
   try {
     const customerId = subscription.customer;
     const subscriptionId = subscription.id;
-    const currentPeriodEnd = new Date(subscription.current_period_end * 1000).toISOString();
+    const currentPeriodEnd = new Date((subscription.current_period_end as number) * 1000).toISOString();
 
     // Determine subscription status
     let subscriptionStatus = 'free';
-    if (subscription.status === 'active' && subscription.items?.data?.length > 0) {
-      const priceId = subscription.items.data[0].price.id;
+    const itemsUpdated = subscription.items as {data: Array<{price: {id: string}}>} | undefined;
+    if (subscription.status === 'active' && itemsUpdated?.data?.length && itemsUpdated.data.length > 0) {
+      const priceId = itemsUpdated.data[0].price.id;
       // Live price IDs for Pro tier
       if (priceId === 'price_1SB5Y8I8PNaNPVmz4WzNzujr' || priceId === 'price_1SB5Y7I8PNaNPVmz5GCOeIEm') {
         subscriptionStatus = 'pro';
