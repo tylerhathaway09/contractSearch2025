@@ -389,13 +389,13 @@ export default function SearchPage() {
                 <Label className="text-sm font-medium">Supplier</Label>
                 <div className="mt-2 space-y-2 max-h-48 overflow-y-auto">
                   {availableSuppliers.slice(0, 20).map((supplier) => (
-                    <div key={supplier.supplier_normalized} className="flex items-center space-x-2">
+                    <div key={supplier.supplier_name} className="flex items-center space-x-2">
                       <Checkbox
-                        id={`supplier-${supplier.supplier_normalized}`}
-                        checked={filters.supplier?.includes(supplier.supplier_normalized) || false}
-                        onCheckedChange={(checked) => handleSupplierChange(supplier.supplier_normalized, checked as boolean)}
+                        id={`supplier-${supplier.supplier_name}`}
+                        checked={filters.supplier?.includes(supplier.supplier_name) || false}
+                        onCheckedChange={(checked) => handleSupplierChange(supplier.supplier_name, checked as boolean)}
                       />
-                      <Label htmlFor={`supplier-${supplier.supplier_normalized}`} className="text-sm">
+                      <Label htmlFor={`supplier-${supplier.supplier_name}`} className="text-sm">
                         {supplier.supplier_name}
                       </Label>
                     </div>

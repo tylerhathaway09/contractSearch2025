@@ -3,11 +3,21 @@ import { Contract } from '@/types';
 
 // Map database contract to frontend Contract type
 function mapDatabaseContract(dbContract: Record<string, unknown>): Contract {
-  const category = (dbContract.items as Array<{category?: string}>)?.[0]?.category || 'Other';
+  // Extract first category from items array
+  const items = dbContract.items as Array<{category?: string}> | null;
+  const category = items && items.length > 0 ? items[0].category || 'Other' : 'Other';
+
+  // Map purchasing_org to frontend source names
+  let source: 'E&I' | 'Sourcewell' | 'OMNIA Partners' | 'Other' = 'Other';
+  if (dbContract.purchasing_org === 'OMNIA') {
+    source = 'OMNIA Partners';
+  } else if (dbContract.purchasing_org === 'E&I' || dbContract.purchasing_org === 'Sourcewell') {
+    source = dbContract.purchasing_org as 'E&I' | 'Sourcewell';
+  }
 
   return {
     id: String(dbContract.id),
-    source: dbContract.purchasing_org as 'E&I' | 'Sourcewell' | 'OMNIA Partners',
+    source,
     contractId: String(dbContract.contract_number || dbContract.id),
     url: String((dbContract.document_urls as unknown[])?.[0] || ''),
     supplierName: String(dbContract.vendor_name || 'Unknown'),
@@ -48,14 +58,18 @@ export class ContractService {
         query = query.or(`contract_title.ilike.%${filters.search}%,vendor_name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
       }
 
-      // Apply source filter
+      // Apply source filter (map frontend source names to database values)
       if (filters.sources && filters.sources.length > 0) {
-        query = query.in('purchasing_org', filters.sources);
+        const dbSources = filters.sources.map(source => {
+          if (source === 'OMNIA Partners') return 'OMNIA';
+          return source; // E&I and Sourcewell remain the same
+        });
+        query = query.in('purchasing_org', dbSources);
       }
 
-      // Apply supplier filter
+      // Apply supplier filter (using vendor_name since supplier_normalized doesn't exist)
       if (filters.suppliers && filters.suppliers.length > 0) {
-        query = query.in('supplier_normalized', filters.suppliers);
+        query = query.in('vendor_name', filters.suppliers);
       }
 
       // Apply date range filters
@@ -176,7 +190,11 @@ export class ContractService {
         return [];
       }
 
-      const sources = [...new Set(data?.map(item => item.purchasing_org) || [])];
+      // Map database source names to frontend display names
+      const sources = [...new Set(data?.map(item => {
+        if (item.purchasing_org === 'OMNIA') return 'OMNIA Partners';
+        return item.purchasing_org;
+      }) || [])];
       return sources.sort();
     } catch (error) {
       console.error('Contract service error:', error);
@@ -219,7 +237,7 @@ export class ContractService {
     try {
       const { data, error } = await supabase
         .from('contracts')
-        .select('vendor_name, supplier_normalized')
+        .select('vendor_name')
         .not('vendor_name', 'is', null)
         .order('vendor_name');
 
@@ -228,16 +246,12 @@ export class ContractService {
         return [];
       }
 
-      // Remove duplicates based on supplier_normalized and map vendor_name to supplier_name
-      const uniqueSuppliers = data?.reduce((acc, item) => {
-        if (!acc.find(s => s.supplier_normalized === item.supplier_normalized)) {
-          acc.push({
-            supplier_name: item.vendor_name,
-            supplier_normalized: item.supplier_normalized || item.vendor_name.toLowerCase().replace(/[^a-z0-9]/g, '')
-          });
-        }
-        return acc;
-      }, [] as Array<{supplier_name: string, supplier_normalized: string}>) || [];
+      // Remove duplicates and create normalized names
+      const uniqueSuppliers = [...new Set(data?.map(item => item.vendor_name) || [])]
+        .map(vendor_name => ({
+          supplier_name: vendor_name,
+          supplier_normalized: vendor_name // Use actual vendor name for filtering since no normalized field exists
+        }));
 
       return uniqueSuppliers;
     } catch (error) {
