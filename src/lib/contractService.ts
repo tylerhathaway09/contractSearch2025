@@ -3,21 +3,21 @@ import { Contract } from '@/types';
 
 // Map database contract to frontend Contract type
 function mapDatabaseContract(dbContract: Record<string, unknown>): Contract {
-  const category = dbContract.items?.[0]?.category || 'Other';
+  const category = (dbContract.items as Array<{category?: string}>)?.[0]?.category || 'Other';
 
   return {
-    id: dbContract.id,
+    id: String(dbContract.id),
     source: dbContract.purchasing_org as 'E&I' | 'Sourcewell' | 'OMNIA Partners',
-    contractId: dbContract.contract_number,
-    url: dbContract.document_urls?.[0] || '',
-    supplierName: dbContract.vendor_name,
-    contractTitle: dbContract.contract_title,
-    contractDescription: dbContract.description || '',
+    contractId: String(dbContract.contract_number || dbContract.id),
+    url: String((dbContract.document_urls as unknown[])?.[0] || ''),
+    supplierName: String(dbContract.vendor_name || 'Unknown'),
+    contractTitle: String(dbContract.contract_title || 'Untitled'),
+    contractDescription: String(dbContract.description || ''),
     category: category,
-    startDate: dbContract.contract_start_date ? new Date(dbContract.contract_start_date) : new Date(),
-    endDate: dbContract.contract_end_date ? new Date(dbContract.contract_end_date) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // Default 1 year from now
-    createdAt: new Date(dbContract.created_at),
-    updatedAt: new Date(dbContract.updated_at)
+    startDate: dbContract.contract_start_date ? new Date(String(dbContract.contract_start_date)) : new Date(),
+    endDate: dbContract.contract_end_date ? new Date(String(dbContract.contract_end_date)) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // Default 1 year from now
+    createdAt: new Date(String(dbContract.created_at)),
+    updatedAt: new Date(String(dbContract.updated_at))
   };
 }
 
@@ -163,7 +163,7 @@ export class ContractService {
         if (contract.items && Array.isArray(contract.items)) {
           contract.items.forEach((item: Record<string, unknown>) => {
             if (item.category) {
-              categories.add(item.category);
+              categories.add(String(item.category));
             }
           });
         }

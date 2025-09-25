@@ -30,7 +30,7 @@ export const setCurrentUser = (user: User | null) => {
 
 export const getCurrentUser = () => currentUser;
 
-export const loginUser = (email: string, password: string): User | null => {
+export const loginUser = (email: string, _password: string): User | null => {
   // Mock login - in real app, this would validate credentials
   // Password is intentionally not validated in mock implementation
   const user = mockUsers.find(u => u.email === email);
@@ -45,7 +45,7 @@ export const logoutUser = () => {
   setCurrentUser(null);
 };
 
-export const createUser = (email: string, name: string, password: string): User => {
+export const createUser = (email: string, name: string, _password: string): User => {
   // Password is intentionally not stored/validated in mock implementation
   const newUser: User = {
     id: (mockUsers.length + 1).toString(),

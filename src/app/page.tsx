@@ -15,7 +15,7 @@ export default function Home() {
   const [featuredContracts, setFeaturedContracts] = useState<Contract[]>([]);
   const [availableSources, setAvailableSources] = useState<string[]>([]);
   const [savedContractsMap, setSavedContractsMap] = useState<Record<string, boolean>>({});
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [refreshKey] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   // Load featured contracts and sources on mount

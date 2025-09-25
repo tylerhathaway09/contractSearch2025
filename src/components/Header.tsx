@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Header() {
-  const { user, profile, signOut, loading } = useAuth();
+  const { user, profile } = useAuth();
 
   return (
     <header className="border-b bg-white">

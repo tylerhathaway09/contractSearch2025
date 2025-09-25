@@ -1,9 +1,21 @@
 import Stripe from 'stripe';
 
-// Initialize Stripe with your secret key
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20',
-});
+// Initialize Stripe lazily to avoid throwing errors on module import
+let stripe: Stripe | null = null;
+
+const initializeStripe = () => {
+  if (!stripe) {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      console.warn('STRIPE_SECRET_KEY environment variable is not set - Stripe functionality will be disabled');
+      return null;
+    }
+
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-08-27.basil',
+    });
+  }
+  return stripe;
+};
 
 interface CreateCustomerParams {
   email: string;
@@ -24,7 +36,12 @@ export async function createStripeCustomer({
   metadata = {}
 }: CreateCustomerParams): Promise<StripeCustomer> {
   try {
-    const customer = await stripe.customers.create({
+    const stripeClient = getStripe();
+    if (!stripeClient) {
+      throw new Error('Stripe is not configured - STRIPE_SECRET_KEY environment variable is not set');
+    }
+
+    const customer = await stripeClient.customers.create({
       email,
       name,
       metadata
@@ -44,7 +61,12 @@ export async function createStripeCustomer({
 
 export async function createSubscription(customerId: string, priceId: string): Promise<Stripe.Subscription> {
   try {
-    const subscription = await stripe.subscriptions.create({
+    const stripeClient = getStripe();
+    if (!stripeClient) {
+      throw new Error('Stripe is not configured - STRIPE_SECRET_KEY environment variable is not set');
+    }
+
+    const subscription = await stripeClient.subscriptions.create({
       customer: customerId,
       items: [{ price: priceId }],
       payment_behavior: 'default_incomplete',
@@ -71,7 +93,13 @@ export function getSubscriptionTierFromPriceId(priceId: string): 'free' | 'pro' 
 
 export function validateStripeWebhook(body: string, signature: string, secret: string): boolean {
   try {
-    stripe.webhooks.constructEvent(body, signature, secret);
+    const stripeClient = getStripe();
+    if (!stripeClient) {
+      console.error('Stripe is not configured - cannot validate webhook');
+      return false;
+    }
+
+    stripeClient.webhooks.constructEvent(body, signature, secret);
     return true;
   } catch (err) {
     console.error('Webhook signature verification failed:', err);
@@ -93,3 +121,8 @@ export const STRIPE_CONFIG = {
     PRO_YEARLY: 'https://buy.stripe.com/7sY28raAIeYigcK1yt5wI03'
   }
 } as const;
+
+// Export Stripe instance only if environment variable is available
+export const getStripe = () => {
+  return initializeStripe();
+};

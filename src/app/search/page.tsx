@@ -181,14 +181,14 @@ export default function SearchPage() {
       if (savedContractsMap[contractId]) {
         const { error } = await removeSavedContract(user.id, contractId);
         if (error) {
-          setBookmarkError(error.message || 'Failed to remove bookmark');
+          setBookmarkError((error as {message?: string})?.message || 'Failed to remove bookmark');
           return;
         }
         setSavedContractsMap(prev => ({ ...prev, [contractId]: false }));
       } else {
         const { error } = await saveContract(user.id, contractId);
         if (error) {
-          setBookmarkError(error.message || 'Failed to save contract');
+          setBookmarkError((error as {message?: string})?.message || 'Failed to save contract');
           return;
         }
         setSavedContractsMap(prev => ({ ...prev, [contractId]: true }));

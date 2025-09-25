@@ -102,7 +102,7 @@ export const createUserProfile = async (userId: string, email: string, name: str
 
     // Then try to create Stripe customer in the background (non-blocking)
     try {
-      const { createStripeCustomer, createFreeSubscription } = await import('@/lib/stripe');
+      const { createStripeCustomer } = await import('@/lib/stripe');
 
       console.log('Attempting to create Stripe customer for:', email);
       const stripeCustomer = await createStripeCustomer({
@@ -115,16 +115,16 @@ export const createUserProfile = async (userId: string, email: string, name: str
       });
 
       console.log('Stripe customer created:', stripeCustomer.id);
-      const freeSubscription = await createFreeSubscription(stripeCustomer.id);
-      console.log('Free subscription created:', freeSubscription.id);
+      // For free tier, we don't create a Stripe subscription - just the customer
 
       // Update the user profile with Stripe information
       const { error: updateError } = await supabase
         .from('users')
         .update({
           stripe_customer_id: stripeCustomer.id,
-          stripe_subscription_id: freeSubscription.id,
-          current_period_end: new Date(freeSubscription.current_period_end * 1000).toISOString()
+          // No subscription for free tier
+          stripe_subscription_id: null,
+          current_period_end: null
         })
         .eq('id', userId);
 
