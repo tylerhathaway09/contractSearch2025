@@ -211,12 +211,12 @@ export class ContractService {
 
   static async getAllCategories(): Promise<string[]> {
     try {
-      // Fetch ALL contracts to get complete category list, not just first 1000
+      // Optimized approach: fetch ALL contracts without limit to get complete category list
+      // Remove the arbitrary 2000 limit to ensure we get all categories
       const { data, error } = await supabase
         .from('contracts')
         .select('items')
-        .not('items', 'is', null)
-        .limit(2000); // Increase limit to get more categories
+        .not('items', 'is', null);
 
       if (error) {
         console.error('Error fetching categories:', error);
@@ -225,12 +225,16 @@ export class ContractService {
 
       const categories = new Set<string>();
 
+      // Process all contracts to extract every category
       data?.forEach(contract => {
         if (contract.items && Array.isArray(contract.items)) {
-          // Get ALL categories from ALL items, not just the first one
+          // Extract categories from ALL items in each contract
           contract.items.forEach((item: Record<string, unknown>) => {
             if (item.category && typeof item.category === 'string') {
-              categories.add(item.category.trim());
+              const trimmedCategory = item.category.trim();
+              if (trimmedCategory.length > 0) {
+                categories.add(trimmedCategory);
+              }
             }
           });
         }
