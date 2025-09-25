@@ -15,6 +15,7 @@ function mapDatabaseContract(dbContract: Record<string, unknown>): Contract {
     source = dbContract.purchasing_org as 'E&I' | 'Sourcewell';
   }
 
+
   return {
     id: String(dbContract.id),
     source,
