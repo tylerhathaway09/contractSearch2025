@@ -19,7 +19,7 @@ This document details the completion of Stripe webhooks integration for the Cont
   - `customer.subscription.deleted`
   - `invoice.payment_succeeded`
   - `invoice.payment_failed`
-- **Signing Secret**: `whsec_v80H3atfcBg4c5pFcySolo2r6udhZ4EN`
+- **Signing Secret**: `whsec_[REGENERATE_IN_STRIPE_DASHBOARD]`
 
 ### 2. Webhook Handler Implementation
 The webhook handler at `src/app/api/webhooks/stripe/route.ts` processes:
@@ -36,12 +36,12 @@ The webhook handler at `src/app/api/webhooks/stripe/route.ts` processes:
 ### 3. Environment Variables
 **Local Development**: `.env.local`
 ```bash
-STRIPE_WEBHOOK_SECRET=whsec_v80H3atfcBg4c5pFcySolo2r6udhZ4EN
+STRIPE_WEBHOOK_SECRET=whsec_[YOUR_REGENERATED_SECRET]
 ```
 
 **Production (Vercel)**: Environment Variables
 ```bash
-STRIPE_WEBHOOK_SECRET=whsec_v80H3atfcBg4c5pFcySolo2r6udhZ4EN
+STRIPE_WEBHOOK_SECRET=whsec_[YOUR_REGENERATED_SECRET]
 ```
 
 ### 4. Testing Completed ✅
@@ -81,7 +81,7 @@ handlePaymentFailed()         // Payment failure logging
 ### Vercel Configuration
 1. **Environment Variable Added**:
    - Name: `STRIPE_WEBHOOK_SECRET`
-   - Value: `whsec_v80H3atfcBg4c5pFcySolo2r6udhZ4EN`
+   - Value: `whsec_[YOUR_REGENERATED_SECRET]`
    - Environment: Production
 
 2. **Webhook Endpoint Active**:

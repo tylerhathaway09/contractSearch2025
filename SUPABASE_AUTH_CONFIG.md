@@ -6,7 +6,7 @@ After updating the code, you must configure Supabase project settings to ensure 
 
 ### 1. Update Site URL in Supabase Dashboard
 
-1. Go to your Supabase project dashboard: https://supabase.com/dashboard/project/xqfimjbxjwisvknvgutx
+1. Go to your Supabase project dashboard: https://supabase.com/dashboard/project/[YOUR_PROJECT_ID]
 2. Navigate to **Authentication** → **Settings**
 3. Update the following fields:
 

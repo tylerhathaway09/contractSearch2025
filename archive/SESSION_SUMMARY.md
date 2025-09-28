@@ -47,11 +47,11 @@
 
 ## 🔑 YOUR SUPABASE CREDENTIALS
 
-**Project Reference ID**: `xqfimjbxjwisvknvgutx`
-**Project URL**: `https://xqfimjbxjwisvknvgutx.supabase.co`
-**Access Token**: `sbp_ff729c24f1366e37ee6e7b7c1342f0d1272c953c`
-**Anon Key**: `sb_publishable_Ags9QXz1bFNKTjsnotGDPw_xlSHUdhB`
-**Service Role Key**: `sb_secret_Xr5EMNqi1DX_3B_9KeiX-g_GPAV4W_p`
+**Project Reference ID**: `[REMOVED_FOR_SECURITY]`
+**Project URL**: `https://[PROJECT_ID].supabase.co`
+**Access Token**: `[REGENERATE_IN_SUPABASE_DASHBOARD]`
+**Anon Key**: `[REGENERATE_IN_SUPABASE_DASHBOARD]`
+**Service Role Key**: `[REGENERATE_IN_SUPABASE_DASHBOARD]`
 
 ## 📁 NEW FILES CREATED
 
