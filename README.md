@@ -3,7 +3,7 @@
 A production-ready government contract search platform aggregating 1330+ contracts from E&I, Sourcewell, and OMNIA Partners. Features user authentication, subscription management, contract bookmarking, and advanced search capabilities.
 
 **🌐 Live URL**: https://www.understoryanalytics.com
-**📊 Status**: Production Ready with Live Stripe Payments
+**📊 Status**: Production Ready with Live Stripe Payments & Webhooks
 
 ## 🚀 Features
 
@@ -188,7 +188,8 @@ Current implementation uses mock data located in:
 
 ### Completed ✅
 - Production database with 1330+ real contracts
-- Live Stripe payment processing
+- Live Stripe payment processing with webhooks
+- Real-time subscription management
 - User authentication with email verification
 - Contract bookmarking system
 - Advanced search with filtering
@@ -280,7 +281,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 For questions or issues:
 - Check the `PROJECT_DOCUMENTATION.md` for detailed technical information
-- Review `DEPLOYMENT_NEXT_STEPS.md` for production setup details
+- Review `STRIPE_WEBHOOKS_SETUP.md` for webhook implementation details
+- See `DEPLOYMENT_NEXT_STEPS.md` for production setup details
 - Create an issue in the repository for bugs or feature requests
 
 ---

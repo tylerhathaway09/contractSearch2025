@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,7 +15,19 @@ export default function DashboardPage() {
   const [savedContracts, setSavedContracts] = useState<Contract[]>([]);
   const [searchLimitInfo, setSearchLimitInfo] = useState<{can_search: boolean, remaining: number, limit_count: number, is_pro: boolean} | null>(null);
   const [loading, setLoading] = useState(true);
+  const [successMessage, setSuccessMessage] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    // Check for success messages from auth callback
+    const messageParam = searchParams.get('message');
+    if (messageParam) {
+      setSuccessMessage(messageParam);
+      // Clear the message from URL after 5 seconds
+      setTimeout(() => setSuccessMessage(''), 5000);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!user) {
@@ -117,6 +129,15 @@ export default function DashboardPage() {
             </span>
           </div>
         </div>
+
+        {/* Success Message */}
+        {successMessage && (
+          <div className="mb-6">
+            <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md text-sm">
+              {successMessage}
+            </div>
+          </div>
+        )}
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
