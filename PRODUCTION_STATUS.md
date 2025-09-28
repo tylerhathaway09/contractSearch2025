@@ -92,7 +92,7 @@
 ### Environment Variables (Production)
 ```bash
 # Supabase (Production Database)
-NEXT_PUBLIC_SUPABASE_URL=https://xqfimjbxjwisvknvgutx.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://[YOUR_PROJECT_ID].supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_...
 
 # Stripe Live Mode
