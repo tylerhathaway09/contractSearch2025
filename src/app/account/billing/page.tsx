@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,11 +8,24 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, CreditCard, Calendar, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { STRIPE_CONFIG } from '@/lib/stripe';
+import dynamic from 'next/dynamic';
 
-export default function BillingPage() {
+// Dynamically import the STRIPE_CONFIG to avoid SSR issues
+const STRIPE_CONFIG = {
+  PAYMENT_LINKS: {
+    PRO_MONTHLY: 'https://buy.stripe.com/8x2aEX108g2m7Ge6SN5wI02',
+    PRO_YEARLY: 'https://buy.stripe.com/7sY28raAIeYigcK1yt5wI03'
+  }
+};
+
+function BillingPage() {
   const { user, profile } = useAuth();
   const router = useRouter();
+
+  // Force this page to be dynamic to avoid SSR issues with window.open
+  useEffect(() => {
+    // This ensures the page is client-side rendered
+  }, []);
 
   if (!user) {
     router.push('/login');
@@ -20,6 +34,12 @@ export default function BillingPage() {
 
   const isFreePlan = profile?.subscription_status === 'free';
   const isProPlan = profile?.subscription_status === 'pro';
+
+  const handleUpgradeClick = (url: string) => {
+    if (typeof window !== 'undefined') {
+      window.open(url, '_blank');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -110,14 +130,14 @@ export default function BillingPage() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <Button
                     className="w-full"
-                    onClick={() => window.open(STRIPE_CONFIG.PAYMENT_LINKS.PRO_MONTHLY, '_blank')}
+                    onClick={() => handleUpgradeClick(STRIPE_CONFIG.PAYMENT_LINKS.PRO_MONTHLY)}
                   >
                     Upgrade to Pro Monthly - $20/mo
                   </Button>
                   <Button
                     variant="outline"
                     className="w-full"
-                    onClick={() => window.open(STRIPE_CONFIG.PAYMENT_LINKS.PRO_YEARLY, '_blank')}
+                    onClick={() => handleUpgradeClick(STRIPE_CONFIG.PAYMENT_LINKS.PRO_YEARLY)}
                   >
                     Upgrade to Pro Yearly - $192/year
                     <Badge variant="secondary" className="ml-2">Save 20%</Badge>
@@ -204,3 +224,8 @@ export default function BillingPage() {
     </div>
   );
 }
+
+// Export as dynamic component to prevent SSR issues
+export default dynamic(() => Promise.resolve(BillingPage), {
+  ssr: false
+});

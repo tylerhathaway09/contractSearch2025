@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -10,24 +10,30 @@ import { getSavedContracts, getSearchLimitInfo } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Contract } from '@/types';
 
-export default function DashboardPage() {
-  const { user, profile, signOut } = useAuth();
-  const [savedContracts, setSavedContracts] = useState<Contract[]>([]);
-  const [searchLimitInfo, setSearchLimitInfo] = useState<{can_search: boolean, remaining: number, limit_count: number, is_pro: boolean} | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [successMessage, setSuccessMessage] = useState('');
-  const router = useRouter();
+// Component that uses useSearchParams wrapped in Suspense
+function SuccessMessageHandler({ onMessage }: { onMessage: (message: string) => void }) {
   const searchParams = useSearchParams();
 
   useEffect(() => {
     // Check for success messages from auth callback
     const messageParam = searchParams.get('message');
     if (messageParam) {
-      setSuccessMessage(messageParam);
+      onMessage(messageParam);
       // Clear the message from URL after 5 seconds
-      setTimeout(() => setSuccessMessage(''), 5000);
+      setTimeout(() => onMessage(''), 5000);
     }
-  }, [searchParams]);
+  }, [searchParams, onMessage]);
+
+  return null;
+}
+
+function DashboardContent() {
+  const { user, profile, signOut } = useAuth();
+  const [savedContracts, setSavedContracts] = useState<Contract[]>([]);
+  const [searchLimitInfo, setSearchLimitInfo] = useState<{can_search: boolean, remaining: number, limit_count: number, is_pro: boolean} | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [successMessage, setSuccessMessage] = useState('');
+  const router = useRouter();
 
   useEffect(() => {
     if (!user) {
@@ -104,6 +110,11 @@ export default function DashboardPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-6xl mx-auto">
+        {/* Success Message Handler */}
+        <Suspense fallback={null}>
+          <SuccessMessageHandler onMessage={setSuccessMessage} />
+        </Suspense>
+
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
@@ -332,5 +343,19 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <div className="text-gray-500">Loading...</div>
+        </div>
+      </div>
+    }>
+      <DashboardContent />
+    </Suspense>
   );
 }

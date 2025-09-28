@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -9,12 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { signIn, createUserProfile } from '@/lib/supabase';
 
-export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const router = useRouter();
+// Component that uses useSearchParams wrapped in Suspense
+function ErrorMessageHandler({ onError }: { onError: (error: string) => void }) {
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -23,9 +19,19 @@ export default function LoginPage() {
     const messageParam = searchParams.get('message');
 
     if (errorParam && messageParam) {
-      setError(messageParam);
+      onError(messageParam);
     }
-  }, [searchParams]);
+  }, [searchParams, onError]);
+
+  return null;
+}
+
+function LoginContent() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,6 +73,11 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
+        {/* Error Message Handler */}
+        <Suspense fallback={null}>
+          <ErrorMessageHandler onError={setError} />
+        </Suspense>
+
         <div className="text-center">
           <div className="flex justify-center">
             <div className="h-12 w-12 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -133,5 +144,19 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <div className="text-gray-500">Loading...</div>
+        </div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }
