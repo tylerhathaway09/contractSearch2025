@@ -358,3 +358,13 @@ All missing data consistently displays **"Not Provided"** to:
   - Sorting: NULL dates sorted to end of lists
 
 **Impact**: ~75% of contracts (1,017/1,357) show "Not Provided" for dates, visually demonstrating incomplete data from GPOs and reinforcing the value of complete contract information.
+
+### UI/UX Improvements (October 2025)
+
+- **Card Layout Cleanup** (Oct 1, 2025)
+  - Removed contract descriptions from all card views to reduce visual noise
+  - Most descriptions duplicated title information, providing minimal additional value
+  - Cards now display: source badge, category badge, title, supplier name, contract ID, and expiration
+  - Applied across: search results (`src/app/search/page.tsx`), saved contracts (`src/app/saved/page.tsx`), and homepage (`src/app/page.tsx`)
+  - Net reduction of 13 lines of code
+  - **Rationale**: Title provides sufficient context for users to understand contract scope; detailed description available on contract detail page
