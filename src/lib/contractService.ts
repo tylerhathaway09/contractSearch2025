@@ -4,30 +4,35 @@ import { getContractCategories } from './categoryExtractor';
 
 // Map database contract to frontend Contract type
 function mapDatabaseContract(dbContract: Record<string, unknown>): Contract {
-  // Extract first category from items array
-  const items = dbContract.items as Array<{category?: string}> | null;
-  const category = items && items.length > 0 ? items[0].category || 'Other' : 'Other';
+  // Category is now a direct field, default to 'Other' if not set
+  const category = String(dbContract.category || 'Other');
 
-  // Map purchasing_org to frontend source names
-  let source: 'E&I' | 'Sourcewell' | 'OMNIA Partners' | 'Other' = 'Other';
-  if (dbContract.purchasing_org === 'OMNIA') {
+  // Map source to frontend display names
+  let source: 'E&I' | 'Sourcewell' | 'OMNIA Partners' = 'OMNIA Partners';
+  if (dbContract.source === 'OMNIA') {
     source = 'OMNIA Partners';
-  } else if (dbContract.purchasing_org === 'E&I' || dbContract.purchasing_org === 'Sourcewell') {
-    source = dbContract.purchasing_org as 'E&I' | 'Sourcewell';
+  } else if (dbContract.source === 'E&I' || dbContract.source === 'Sourcewell') {
+    source = dbContract.source as 'E&I' | 'Sourcewell';
   }
-
 
   return {
     id: String(dbContract.id),
     source,
     contractId: String(dbContract.contract_number || dbContract.id),
-    url: String((dbContract.document_urls as unknown[])?.[0] || ''),
-    supplierName: String(dbContract.vendor_name || 'Unknown'),
-    contractTitle: String(dbContract.contract_title || 'Untitled'),
+    url: String(dbContract.contract_url || ''),
+    supplierName: String(dbContract.supplier_name || 'Unknown'),
+    supplierNormalized: String(dbContract.supplier_normalized || ''),
+    contractTitle: String(dbContract.title || 'Untitled'),
     contractDescription: String(dbContract.description || ''),
     category: category,
-    startDate: dbContract.contract_start_date ? new Date(String(dbContract.contract_start_date)) : new Date(),
-    endDate: dbContract.contract_end_date ? new Date(String(dbContract.contract_end_date)) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // Default 1 year from now
+    eligibleIndustries: String(dbContract.eligible_industries || ''),
+    contractType: String(dbContract.contract_type || ''),
+    startDate: dbContract.start_date ? new Date(String(dbContract.start_date)) : new Date(),
+    endDate: dbContract.end_date ? new Date(String(dbContract.end_date)) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // Default 1 year from now
+    geographicCoverage: String(dbContract.geographic_coverage || ''),
+    diversityStatus: String(dbContract.diversity_status || ''),
+    supplierUrl: String(dbContract.supplier_url || ''),
+    status: String(dbContract.status || 'active'),
     createdAt: new Date(String(dbContract.created_at)),
     updatedAt: new Date(String(dbContract.updated_at))
   };
@@ -55,7 +60,7 @@ export class ContractService {
 
       // Apply search filter
       if (filters.search) {
-        query = query.or(`contract_title.ilike.%${filters.search}%,vendor_name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+        query = query.or(`title.ilike.%${filters.search}%,supplier_name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
       }
 
       // Apply source filter (map frontend source names to database values)
@@ -64,17 +69,17 @@ export class ContractService {
           if (source === 'OMNIA Partners') return 'OMNIA';
           return source; // E&I and Sourcewell remain the same
         });
-        query = query.in('purchasing_org', dbSources);
+        query = query.in('source', dbSources);
       }
 
 
 
       // Apply date range filters
       if (filters.dateRange?.start) {
-        query = query.gte('contract_start_date', filters.dateRange.start);
+        query = query.gte('start_date', filters.dateRange.start);
       }
       if (filters.dateRange?.end) {
-        query = query.lte('contract_end_date', filters.dateRange.end);
+        query = query.lte('end_date', filters.dateRange.end);
       }
 
       // Apply sorting
@@ -85,13 +90,13 @@ export class ContractService {
             query = query.order('created_at', { ascending });
             break;
           case 'supplier':
-            query = query.order('vendor_name', { ascending });
+            query = query.order('supplier_name', { ascending });
             break;
           case 'title':
-            query = query.order('contract_title', { ascending });
+            query = query.order('title', { ascending });
             break;
           case 'end_date':
-            query = query.order('contract_end_date', { ascending });
+            query = query.order('end_date', { ascending });
             break;
           default:
             query = query.order('created_at', { ascending: false }); // Default relevance = newest first
@@ -172,8 +177,8 @@ export class ContractService {
     try {
       const { data, error } = await supabase
         .from('contracts')
-        .select('purchasing_org')
-        .not('purchasing_org', 'is', null);
+        .select('source')
+        .not('source', 'is', null);
 
       if (error) {
         console.error('Error fetching sources:', error);
@@ -182,8 +187,8 @@ export class ContractService {
 
       // Map database source names to frontend display names
       const sources = [...new Set(data?.map(item => {
-        if (item.purchasing_org === 'OMNIA') return 'OMNIA Partners';
-        return item.purchasing_org;
+        if (item.source === 'OMNIA') return 'OMNIA Partners';
+        return item.source;
       }) || [])];
       return sources.sort();
     } catch (error) {
@@ -210,15 +215,17 @@ export class ContractService {
 
       // Try to find contracts from the same supplier first
       const { data: sameSupplier } = await query
-        .eq('vendor_name', contract.supplierName);
+        .eq('supplier_name', contract.supplierName);
 
       if (sameSupplier && sameSupplier.length >= limit) {
         return sameSupplier.map(mapDatabaseContract);
       }
 
       // If not enough from same supplier, get contracts from same source
+      // Map frontend source name back to database value
+      const dbSource = contract.source === 'OMNIA Partners' ? 'OMNIA' : contract.source;
       const { data: sameSource } = await query
-        .eq('purchasing_org', contract.source);
+        .eq('source', dbSource);
 
       if (sameSource && sameSource.length > 0) {
         return sameSource.slice(0, limit).map(mapDatabaseContract);

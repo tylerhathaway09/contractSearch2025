@@ -1,14 +1,21 @@
 export interface Contract {
   id: string;
-  source: 'E&I' | 'Sourcewell' | 'OMNIA Partners' | 'Other';
+  source: 'E&I' | 'Sourcewell' | 'OMNIA Partners';
   contractId: string;
   url: string;
   supplierName: string;
+  supplierNormalized?: string;
   contractTitle: string;
   contractDescription: string;
   category: string;
+  eligibleIndustries?: string;
+  contractType?: string;
   startDate: Date;
   endDate: Date;
+  geographicCoverage?: string;
+  diversityStatus?: string;
+  supplierUrl?: string;
+  status?: string;
   createdAt: Date;
   updatedAt: Date;
 }
