@@ -123,14 +123,14 @@ export default function SavedContractsPage() {
                         <Badge variant="outline">{contract.category}</Badge>
                       </div>
                       <CardTitle className="text-lg mb-2">
-                        <Link 
+                        <Link
                           href={`/contract/${contract.id}`}
                           className="hover:text-blue-600 transition-colors"
                         >
                           {contract.contractTitle}
                         </Link>
                       </CardTitle>
-                      <CardDescription className="text-sm text-gray-600 mb-2">
+                      <CardDescription className="text-sm text-gray-600">
                         {contract.supplierName}
                       </CardDescription>
                     </div>
@@ -144,9 +144,6 @@ export default function SavedContractsPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-gray-700 mb-4 line-clamp-2">
-                    {contract.contractDescription}
-                  </p>
                   <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>Contract ID: {contract.contractId}</span>
                     <span>Expires: {contract.endDate ? contract.endDate.toLocaleDateString() : 'Not Provided'}</span>

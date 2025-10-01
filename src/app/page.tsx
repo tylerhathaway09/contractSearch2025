@@ -216,9 +216,6 @@ export default function Home() {
                   </button>
 
                   <CardContent>
-                    <p className="text-sm text-gray-700 mb-4 line-clamp-3">
-                      {contract.contractDescription}
-                    </p>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-500">
                         Expires: {contract.endDate ? contract.endDate.toLocaleDateString() : 'Not Provided'}
