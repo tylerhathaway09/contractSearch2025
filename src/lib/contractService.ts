@@ -41,6 +41,7 @@ function mapDatabaseContract(dbContract: Record<string, unknown>): Contract {
 export interface ContractFilters {
   search?: string;
   sources?: string[];
+  categories?: string[];
   dateRange?: {
     start?: string;
     end?: string;
@@ -72,6 +73,10 @@ export class ContractService {
         query = query.in('source', dbSources);
       }
 
+      // Apply category filter
+      if (filters.categories && filters.categories.length > 0) {
+        query = query.in('category', filters.categories);
+      }
 
 
       // Apply date range filters
@@ -197,12 +202,26 @@ export class ContractService {
     }
   }
 
-  // Category filtering temporarily removed for MVP
-  // TODO: Implement proper data normalization across three sources before re-enabling
-  // static async getAllCategories(): Promise<string[]> {
-  //   // Implementation temporarily disabled
-  //   return [];
-  // }
+  static async getAllCategories(): Promise<string[]> {
+    try {
+      const { data, error } = await supabase
+        .from('contracts')
+        .select('category')
+        .not('category', 'is', null);
+
+      if (error) {
+        console.error('Error fetching categories:', error);
+        return [];
+      }
+
+      // Get unique categories and sort them
+      const categories = [...new Set(data?.map(item => item.category) || [])];
+      return categories.sort();
+    } catch (error) {
+      console.error('Contract service error:', error);
+      return [];
+    }
+  }
 
 
   static async getRelatedContracts(contract: Contract, limit = 4): Promise<Contract[]> {
