@@ -8,6 +8,7 @@ import { ContractService } from '@/lib/contractService';
 import { Contract } from '@/types';
 import { saveContract, removeSavedContract, isContractSaved } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { splitCategories } from '@/lib/categoryUtils';
 import { useState, useEffect } from 'react';
 
 export default function Home() {
@@ -176,9 +177,11 @@ export default function Home() {
                 <Card key={contract.id} className="hover:shadow-lg transition-shadow relative">
                   <CardHeader>
                     <div className="flex items-start justify-between mb-2">
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         <Badge variant="secondary">{contract.source}</Badge>
-                        <Badge variant="outline">{contract.category}</Badge>
+                        {splitCategories(contract.category).map(cat => (
+                          <Badge key={cat} variant="outline">{cat}</Badge>
+                        ))}
                       </div>
                     </div>
                     <CardTitle className="text-lg">

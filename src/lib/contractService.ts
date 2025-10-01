@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { Contract } from '@/types';
 import { getContractCategories } from './categoryExtractor';
+import { extractBaseCategories } from './categoryUtils';
 
 // Map database contract to frontend Contract type
 function mapDatabaseContract(dbContract: Record<string, unknown>): Contract {
@@ -73,9 +74,11 @@ export class ContractService {
         query = query.in('source', dbSources);
       }
 
-      // Apply category filter
+      // Apply category filter (partial matching for comma-separated categories)
       if (filters.categories && filters.categories.length > 0) {
-        query = query.in('category', filters.categories);
+        // Build OR conditions for partial matching
+        const categoryConditions = filters.categories.map(cat => `category.ilike.%${cat}%`).join(',');
+        query = query.or(categoryConditions);
       }
 
 
@@ -214,9 +217,9 @@ export class ContractService {
         return [];
       }
 
-      // Get unique categories and sort them
-      const categories = [...new Set(data?.map(item => item.category) || [])];
-      return categories.sort();
+      // Extract and return base categories (split comma-separated values)
+      const allCategories = data?.map(item => item.category) || [];
+      return extractBaseCategories(allCategories);
     } catch (error) {
       console.error('Contract service error:', error);
       return [];

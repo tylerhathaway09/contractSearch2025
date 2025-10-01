@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { getSavedContracts, removeSavedContract } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Contract } from '@/types';
+import { splitCategories } from '@/lib/categoryUtils';
 
 export default function SavedContractsPage() {
   const { user } = useAuth();
@@ -118,9 +119,11 @@ export default function SavedContractsPage() {
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
                         <Badge variant="secondary">{contract.source}</Badge>
-                        <Badge variant="outline">{contract.category}</Badge>
+                        {splitCategories(contract.category).map(cat => (
+                          <Badge key={cat} variant="outline">{cat}</Badge>
+                        ))}
                       </div>
                       <CardTitle className="text-lg mb-2">
                         <Link

@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { ContractService } from '@/lib/contractService';
 import { formatDateRange, getDaysUntilExpiration, isContractExpiringSoon } from '@/lib/contractUtils';
+import { splitCategories } from '@/lib/categoryUtils';
 import Link from 'next/link';
 
 interface ContractPageProps {
@@ -40,13 +41,15 @@ export default async function ContractPage({ params }: ContractPageProps) {
 
         {/* Contract Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex items-center gap-3 mb-4 flex-wrap">
             <Badge variant="secondary" className="text-sm">
               {contract.source}
             </Badge>
-            <Badge variant="outline" className="text-sm">
-              {contract.category}
-            </Badge>
+            {splitCategories(contract.category).map(cat => (
+              <Badge key={cat} variant="outline" className="text-sm">
+                {cat}
+              </Badge>
+            ))}
             {isExpiringSoon && (
               <Badge variant="destructive" className="text-sm">
                 Expiring Soon
