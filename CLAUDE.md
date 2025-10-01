@@ -8,7 +8,7 @@ A production-ready government contract search platform built with Next.js 15, Ty
 
 **Live URL**: https://www.understoryanalytics.com
 **Status**: Production with live Stripe payments, webhooks, and Vercel Analytics
-**Last Updated**: October 1, 2025
+**Last Updated**: October 1, 2025 (Category filtering & splitting implemented)
 
 ## Essential Commands
 
@@ -101,8 +101,15 @@ npm run deploy-schema    # Deploy database schema
   - Full-text search across title, description, supplier_name
   - Date range filtering on start_date/end_date
   - Source filtering with DB name translation (OMNIA Partners ↔ OMNIA)
+  - Category filtering with partial matching (supports multi-category contracts)
   - Sorting: relevance, date, supplier, title, end_date
   - Pagination with offset/limit
+
+- **Category Utilities** (`src/lib/categoryUtils.ts`):
+  - `splitCategories(category: string)`: Splits comma-separated categories into array
+  - `extractBaseCategories(categories: string[])`: Extracts unique base categories
+  - Used for displaying multiple category badges and filtering
+  - Handles both single categories ("Facilities") and multi-categories ("Corporate Services, Facilities")
 
 ### Frontend Pages Structure
 
@@ -364,7 +371,29 @@ All missing data consistently displays **"Not Provided"** to:
 - **Card Layout Cleanup** (Oct 1, 2025)
   - Removed contract descriptions from all card views to reduce visual noise
   - Most descriptions duplicated title information, providing minimal additional value
-  - Cards now display: source badge, category badge, title, supplier name, contract ID, and expiration
+  - Cards now display: source badge, category badge(s), title, supplier name, contract ID, and expiration
   - Applied across: search results (`src/app/search/page.tsx`), saved contracts (`src/app/saved/page.tsx`), and homepage (`src/app/page.tsx`)
   - Net reduction of 13 lines of code
   - **Rationale**: Title provides sufficient context for users to understand contract scope; detailed description available on contract detail page
+
+- **Category Filtering** (Oct 1, 2025)
+  - Enabled category-based filtering on search page
+  - Backend: Added `categories` filter to `ContractFilters` interface
+  - Implemented `getAllCategories()` method in `ContractService`
+  - Filter UI: Scrollable sidebar with checkboxes for all available categories
+  - Database: Category filtering applied via `.in()` query
+  - Integration: Categories included in filter state, clear filters, and search query
+
+- **Category Badge Splitting** (Oct 1, 2025)
+  - Split comma-separated categories into individual badges for better UX
+  - Created `src/lib/categoryUtils.ts` with utility functions:
+    - `splitCategories()`: Splits "Corporate Services, Facilities" → ["Corporate Services", "Facilities"]
+    - `extractBaseCategories()`: Extracts unique base categories from array
+  - Updated `getAllCategories()` to return 21 base categories (reduced from 41 combined)
+  - Modified filter query: Uses `.ilike` for partial matching to support multi-category contracts
+  - UI Updates: Multiple category badges displayed across all pages with flex-wrap
+  - **Impact**:
+    - 96% of contracts (963/1,000) have single categories (no visual change)
+    - 4% of contracts (37/1,000) now display multiple category badges
+    - Cleaner filter sidebar: 21 base category options vs 41 combined options
+    - Better search: Selecting "Facilities" finds all contracts containing Facilities tag
