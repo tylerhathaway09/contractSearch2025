@@ -52,12 +52,12 @@ export const searchContracts = (
   if (filters.dateRange) {
     if (filters.dateRange.start) {
       filteredContracts = filteredContracts.filter(contract =>
-        contract.startDate >= filters.dateRange!.start!
+        contract.startDate && contract.startDate >= filters.dateRange!.start!
       );
     }
     if (filters.dateRange.end) {
       filteredContracts = filteredContracts.filter(contract =>
-        contract.endDate <= filters.dateRange!.end!
+        contract.endDate && contract.endDate <= filters.dateRange!.end!
       );
     }
   }
@@ -68,10 +68,14 @@ export const searchContracts = (
 
   filteredContracts.sort((a, b) => {
     let comparison = 0;
-    
+
     switch (sortBy) {
       case 'date':
-        comparison = a.startDate.getTime() - b.startDate.getTime();
+        // Handle null dates in sorting - null dates go to end
+        if (!a.startDate && !b.startDate) comparison = 0;
+        else if (!a.startDate) comparison = 1;
+        else if (!b.startDate) comparison = -1;
+        else comparison = a.startDate.getTime() - b.startDate.getTime();
         break;
       case 'supplier':
         comparison = a.supplierName.localeCompare(b.supplierName);
@@ -125,18 +129,27 @@ export const formatDate = (date: Date): string => {
   });
 };
 
-export const formatDateRange = (startDate: Date, endDate: Date): string => {
+export const formatDateRange = (startDate: Date | null, endDate: Date | null): string => {
+  if (!startDate && !endDate) return 'Not Provided';
+  if (!startDate) return `Not Provided - ${formatDate(endDate!)}`;
+  if (!endDate) return `${formatDate(startDate)} - Not Provided`;
+
   const start = formatDate(startDate);
   const end = formatDate(endDate);
   return `${start} - ${end}`;
 };
 
-export const getDaysUntilExpiration = (endDate: Date): number => {
+export const getDaysUntilExpiration = (endDate: Date | null): number | null => {
+  if (!endDate) return null;
+
   const now = new Date();
   const diffTime = endDate.getTime() - now.getTime();
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
 
-export const isContractExpiringSoon = (endDate: Date, daysThreshold: number = 90): boolean => {
-  return getDaysUntilExpiration(endDate) <= daysThreshold;
+export const isContractExpiringSoon = (endDate: Date | null, daysThreshold: number = 90): boolean => {
+  if (!endDate) return false;
+
+  const daysUntil = getDaysUntilExpiration(endDate);
+  return daysUntil !== null && daysUntil <= daysThreshold;
 };

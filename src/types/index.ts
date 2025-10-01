@@ -10,8 +10,8 @@ export interface Contract {
   category: string;
   eligibleIndustries?: string;
   contractType?: string;
-  startDate: Date;
-  endDate: Date;
+  startDate: Date | null;
+  endDate: Date | null;
   geographicCoverage?: string;
   diversityStatus?: string;
   supplierUrl?: string;

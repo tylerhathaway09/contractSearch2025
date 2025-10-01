@@ -221,7 +221,7 @@ export default function Home() {
                     </p>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-500">
-                        Expires: {contract.endDate.toLocaleDateString()}
+                        Expires: {contract.endDate ? contract.endDate.toLocaleDateString() : 'Not Provided'}
                       </span>
                       <Button size="sm" variant="outline" asChild>
                         <Link href={`/contract/${contract.id}`}>View Details</Link>

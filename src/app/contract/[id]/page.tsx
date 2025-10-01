@@ -167,16 +167,20 @@ export default async function ContractPage({ params }: ContractPageProps) {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Start Date</span>
-                    <span className="text-sm font-medium">{contract.startDate.toLocaleDateString()}</span>
+                    <span className="text-sm font-medium">
+                      {contract.startDate ? contract.startDate.toLocaleDateString() : 'Not Provided'}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">End Date</span>
-                    <span className="text-sm font-medium">{contract.endDate.toLocaleDateString()}</span>
+                    <span className="text-sm font-medium">
+                      {contract.endDate ? contract.endDate.toLocaleDateString() : 'Not Provided'}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Expires In</span>
                     <span className={`text-sm font-medium ${isExpiringSoon ? 'text-red-600' : 'text-gray-900'}`}>
-                      {daysUntilExpiration} days
+                      {daysUntilExpiration !== null ? `${daysUntilExpiration} days` : 'Not Provided'}
                     </span>
                   </div>
                 </div>
@@ -213,7 +217,7 @@ export default async function ContractPage({ params }: ContractPageProps) {
                           </Badge>
                         </div>
                         <p className="text-xs text-gray-500">
-                          Expires: {relatedContract.endDate.toLocaleDateString()}
+                          Expires: {relatedContract.endDate ? relatedContract.endDate.toLocaleDateString() : 'Not Provided'}
                         </p>
                       </div>
                     ))}

@@ -27,8 +27,8 @@ function mapDatabaseContract(dbContract: Record<string, unknown>): Contract {
     category: category,
     eligibleIndustries: String(dbContract.eligible_industries || ''),
     contractType: String(dbContract.contract_type || ''),
-    startDate: dbContract.start_date ? new Date(String(dbContract.start_date)) : new Date(),
-    endDate: dbContract.end_date ? new Date(String(dbContract.end_date)) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // Default 1 year from now
+    startDate: dbContract.start_date ? new Date(String(dbContract.start_date)) : null,
+    endDate: dbContract.end_date ? new Date(String(dbContract.end_date)) : null,
     geographicCoverage: String(dbContract.geographic_coverage || ''),
     diversityStatus: String(dbContract.diversity_status || ''),
     supplierUrl: String(dbContract.supplier_url || ''),

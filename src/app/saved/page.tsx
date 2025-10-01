@@ -149,7 +149,7 @@ export default function SavedContractsPage() {
                   </p>
                   <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>Contract ID: {contract.contractId}</span>
-                    <span>Expires: {contract.endDate.toLocaleDateString()}</span>
+                    <span>Expires: {contract.endDate ? contract.endDate.toLocaleDateString() : 'Not Provided'}</span>
                   </div>
                 </CardContent>
               </Card>
