@@ -233,11 +233,23 @@ Supabase Auth settings:
    - Direct 1:1 mapping between CSV columns and database schema
    - Category is now a direct text field instead of JSONB array
    - All fields properly typed: dates, text, nullable fields
-2. **Lazy Stripe Initialization**: Stripe client only created when env var exists
-3. **Non-blocking Stripe**: Customer creation doesn't block user profile creation
-4. **Search Limit Tracking**: Separate `search_usage` table vs incrementing counter
-5. **Frontend Source Mapping**: Display names differ from database values (OMNIA → OMNIA Partners)
-6. **Vercel Analytics Integration**: Client-side tracking for page views and user behavior
+
+2. **Incomplete Data Strategy**: Show missing data instead of generating placeholders (Oct 2025)
+   - **Business-driven decision** to support data quality differentiation model
+   - NULL allowed for: `contract_number`, `start_date`, `end_date`
+   - Display "Not Provided" consistently across all UI
+   - Partial unique indexes prevent duplicates while allowing NULLs
+   - ~75% of contracts show missing data, driving GPO engagement
+
+3. **Lazy Stripe Initialization**: Stripe client only created when env var exists
+
+4. **Non-blocking Stripe**: Customer creation doesn't block user profile creation
+
+5. **Search Limit Tracking**: Separate `search_usage` table vs incrementing counter
+
+6. **Frontend Source Mapping**: Display names differ from database values (OMNIA → OMNIA Partners)
+
+7. **Vercel Analytics Integration**: Client-side tracking for page views and user behavior
 
 ## Common Gotchas
 
@@ -247,6 +259,17 @@ Supabase Auth settings:
 - Email redirects must match Supabase Site URL configuration
 - Webhook signature validation requires raw request body
 - Free tier search limit resets based on calendar month, not rolling 30 days
+
+### Working with Incomplete Data
+- **NEVER generate fake data** for missing fields - this is a core business requirement
+- Contract numbers, dates, and other fields may be NULL - always check before using
+- Use "Not Provided" messaging (not "Not Available" which implies platform error)
+- When adding new features that use dates/contract numbers:
+  - Handle NULL values gracefully
+  - Display "Not Provided" for missing data
+  - Don't filter out contracts with missing data (they're there intentionally)
+- Sorting: NULL values should sort to end of lists
+- Date filtering: Exclude contracts with NULL dates from date range filters
 
 ## Production Deployment
 
@@ -271,6 +294,23 @@ Supabase Auth settings:
 - Automatic page view tracking in production
 - View analytics at Vercel dashboard → Analytics tab
 
+## Business Model: Data Quality Differentiation
+
+**Core Value Proposition**: Show GPOs (Government Purchase Organizations) how incomplete competitor data hurts contract discoverability, encouraging them to provide complete information to our platform.
+
+### Strategy
+- Import contracts **with missing data** (contract numbers, dates, etc.)
+- Display "Not Provided" for missing fields instead of generating fake data
+- Create visual comparison showing complete vs. incomplete listings
+- Demonstrate how complete data improves search results and user engagement
+
+### Implementation
+All missing data consistently displays **"Not Provided"** to:
+1. Make data gaps immediately visible to GPOs
+2. Emphasize GPO responsibility for data completeness
+3. Avoid platform errors being blamed for missing information
+4. Drive GPOs to submit complete contract information
+
 ## Recent Updates (October 2025)
 
 ### Schema Migration & Data Updates
@@ -294,3 +334,27 @@ Supabase Auth settings:
   - Package: `@vercel/analytics@^1.5.0`
   - Integrated in `src/app/layout.tsx`
   - Tracks page views and user behavior
+
+### Incomplete Data Handling (Oct 1, 2025)
+
+**Business Driver**: Support data quality differentiation strategy by showing missing data instead of generating fake placeholders.
+
+- **NULL Contract Numbers** (171 contracts affected)
+  - Database: Allow NULL `contract_number` field
+  - Migration: `migration-allow-null-contract-number.sql`
+  - Import: Removed from required fields validation
+  - Display: Shows "Not Provided" instead of UUID fallback
+  - Unique constraint: Partial index (only when contract_number exists)
+
+- **NULL Dates** (1,017 contracts affected)
+  - Types: `startDate: Date | null`, `endDate: Date | null`
+  - Service: Return `null` instead of fake dates (was: today's date, today + 1 year)
+  - Utils: `formatDateRange()`, `getDaysUntilExpiration()` handle null dates
+  - Display: "Not Provided" shown across all pages:
+    - Contract detail page (start/end dates, expiration)
+    - Search results (expiration date)
+    - Saved contracts (expiration date)
+    - Homepage featured contracts (expiration date)
+  - Sorting: NULL dates sorted to end of lists
+
+**Impact**: ~75% of contracts (1,017/1,357) show "Not Provided" for dates, visually demonstrating incomplete data from GPOs and reinforcing the value of complete contract information.
