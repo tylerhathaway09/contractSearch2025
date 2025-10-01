@@ -18,7 +18,7 @@ function mapDatabaseContract(dbContract: Record<string, unknown>): Contract {
   return {
     id: String(dbContract.id),
     source,
-    contractId: String(dbContract.contract_number || dbContract.id),
+    contractId: String(dbContract.contract_number || 'Not Provided'),
     url: String(dbContract.contract_url || ''),
     supplierName: String(dbContract.supplier_name || 'Unknown'),
     supplierNormalized: String(dbContract.supplier_normalized || ''),
