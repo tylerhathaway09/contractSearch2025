@@ -6,7 +6,7 @@ export default function Contact() {
       <div className="prose prose-gray max-w-none">
         <section className="mb-8">
           <p className="text-gray-700 mb-6">
-            Have questions, feedback, or need support? We'd love to hear from you!
+            Have questions, feedback, or need support? We&apos;d love to hear from you!
           </p>
 
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
@@ -28,7 +28,7 @@ export default function Contact() {
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Response Time</h2>
             <p className="text-gray-700">
               We aim to respond to all inquiries within 1-2 business days. For urgent technical issues affecting your
-              account, please include "URGENT" in your email subject line.
+              account, please include &quot;URGENT&quot; in your email subject line.
             </p>
           </div>
         </section>
@@ -48,7 +48,7 @@ export default function Contact() {
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Contract Data Inquiries</h3>
               <p className="text-gray-700">
                 For questions about specific contracts, please verify information directly with the respective GPO or supplier.
-                Contract data is provided "as-is" from source organizations.
+                Contract data is provided &quot;as-is&quot; from source organizations.
               </p>
             </div>
 

@@ -9,7 +9,7 @@ export default function PrivacyPolicy() {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Introduction</h2>
           <p className="text-gray-700 mb-4">
-            Understory Analytics ("we," "us," or "our") operates ContractSearch. This Privacy Policy explains how we collect,
+            Understory Analytics (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) operates ContractSearch. This Privacy Policy explains how we collect,
             use, disclose, and safeguard your information when you use our Service. We are committed to protecting your
             privacy and ensuring transparency about our data practices.
           </p>
@@ -151,7 +151,7 @@ export default function PrivacyPolicy() {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">9. Children's Privacy</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">9. Children&apos;s Privacy</h2>
           <p className="text-gray-700 mb-4">
             Our Service is not intended for individuals under the age of 18. We do not knowingly collect personal information
             from children. If you believe we have collected information from a child, please contact us immediately at
@@ -172,8 +172,8 @@ export default function PrivacyPolicy() {
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">11. Changes to This Privacy Policy</h2>
           <p className="text-gray-700 mb-4">
             We may update this Privacy Policy from time to time to reflect changes in our practices or legal requirements.
-            We will notify you of significant changes via email or through a prominent notice on our Service. The "Last
-            Updated" date at the top of this policy indicates when it was last revised.
+            We will notify you of significant changes via email or through a prominent notice on our Service. The &quot;Last
+            Updated&quot; date at the top of this policy indicates when it was last revised.
           </p>
           <p className="text-gray-700 mb-4">
             Your continued use of the Service after changes to this policy constitutes acceptance of the updated terms.
