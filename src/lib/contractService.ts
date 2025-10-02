@@ -34,6 +34,7 @@ function mapDatabaseContract(dbContract: Record<string, unknown>): Contract {
     diversityStatus: String(dbContract.diversity_status || ''),
     supplierUrl: String(dbContract.supplier_url || ''),
     status: String(dbContract.status || 'active'),
+    productTags: Array.isArray(dbContract.product_tags) ? dbContract.product_tags as string[] : undefined,
     createdAt: new Date(String(dbContract.created_at)),
     updatedAt: new Date(String(dbContract.updated_at))
   };
@@ -51,6 +52,10 @@ export interface ContractFilters {
   sortOrder?: 'asc' | 'desc';
   page?: number;
   limit?: number;
+  // AI enhancement (pre-expanded on client before sending)
+  enhancedKeywords?: string[];
+  enhancedSuppliers?: string[];
+  enhancedCategories?: string[];
 }
 
 export class ContractService {
@@ -60,10 +65,45 @@ export class ContractService {
         .from('contracts')
         .select('*', { count: 'exact' });
 
-      // Apply search filter
+      // Apply search filter (with optional pre-expanded AI keywords/suppliers/categories from client)
       if (filters.search) {
-        query = query.or(`title.ilike.%${filters.search}%,supplier_name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+        const searchConditions: string[] = [
+          `title.ilike.%${filters.search}%`,
+          `supplier_name.ilike.%${filters.search}%`,
+          `description.ilike.%${filters.search}%`
+        ];
+
+        // Add enhanced keywords (if provided from client-side AI enhancement)
+        if (filters.enhancedKeywords && filters.enhancedKeywords.length > 0) {
+          console.log('[ContractService] Enhanced keywords:', filters.enhancedKeywords);
+          filters.enhancedKeywords.forEach(keyword => {
+            searchConditions.push(`title.ilike.%${keyword}%`);
+            searchConditions.push(`description.ilike.%${keyword}%`);
+          });
+        }
+
+        // Add enhanced suppliers (if provided from client-side AI enhancement)
+        if (filters.enhancedSuppliers && filters.enhancedSuppliers.length > 0) {
+          console.log('[ContractService] Enhanced suppliers:', filters.enhancedSuppliers);
+          filters.enhancedSuppliers.forEach(supplier => {
+            searchConditions.push(`supplier_name.ilike.%${supplier}%`);
+          });
+        }
+
+        // Add enhanced categories to SEARCH (not as filter) - helps find contracts in related categories
+        if (filters.enhancedCategories && filters.enhancedCategories.length > 0) {
+          console.log('[ContractService] Enhanced categories (for search):', filters.enhancedCategories);
+          filters.enhancedCategories.forEach(category => {
+            searchConditions.push(`category.ilike.%${category}%`);
+          });
+        }
+
+        console.log('[ContractService] Search conditions:', searchConditions);
+        query = query.or(searchConditions.join(','));
       }
+
+      // Use only user-selected categories as filters (NOT AI-enhanced categories)
+      const uniqueCategories = filters.categories || [];
 
       // Apply source filter (map frontend source names to database values)
       if (filters.sources && filters.sources.length > 0) {
@@ -75,9 +115,10 @@ export class ContractService {
       }
 
       // Apply category filter (partial matching for comma-separated categories)
-      if (filters.categories && filters.categories.length > 0) {
+      // Use uniqueCategories which includes both user-selected and AI-enhanced categories
+      if (uniqueCategories.length > 0) {
         // Build OR conditions for partial matching
-        const categoryConditions = filters.categories.map(cat => `category.ilike.%${cat}%`).join(',');
+        const categoryConditions = uniqueCategories.map(cat => `category.ilike.%${cat}%`).join(',');
         query = query.or(categoryConditions);
       }
 

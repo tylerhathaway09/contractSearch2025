@@ -16,6 +16,7 @@ export interface Contract {
   diversityStatus?: string;
   supplierUrl?: string;
   status?: string;
+  productTags?: string[];
   createdAt: Date;
   updatedAt: Date;
 }

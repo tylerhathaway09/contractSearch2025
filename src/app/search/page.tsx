@@ -13,6 +13,7 @@ import { ContractService, ContractFilters } from '@/lib/contractService';
 import { saveContract, removeSavedContract, isContractSaved, getSearchLimitInfo as getSearchLimitInfoFromSupabase, incrementSearchCount } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { splitCategories } from '@/lib/categoryUtils';
+import { enhanceSearchQuery } from '@/lib/queryEnhancer';
 import Link from 'next/link';
 
 export default function SearchPage() {
@@ -23,12 +24,14 @@ export default function SearchPage() {
     category: string[];
     sortBy: string;
     sortOrder: string;
+    enhanceQuery: boolean;
   }>({
     query: '',
     source: [],
     category: [],
     sortBy: 'relevance',
     sortOrder: 'desc',
+    enhanceQuery: true, // AI enhancement enabled by default
   });
   const [searchResults, setSearchResults] = useState<{contracts: Contract[], total: number} | null>(null);
   const [availableSources, setAvailableSources] = useState<string[]>([]);
@@ -55,14 +58,34 @@ export default function SearchPage() {
         }
       }
 
+      // AI Enhancement (calls API route which has server-side key)
+      let enhancedKeywords: string[] = [];
+      let enhancedSuppliers: string[] = [];
+      let enhancedCategories: string[] = [];
+
+      if (filters.query && filters.enhanceQuery) {
+        try {
+          const enhanced = await enhanceSearchQuery(filters.query);
+          enhancedKeywords = enhanced.keywords;
+          enhancedSuppliers = enhanced.suppliers;
+          enhancedCategories = enhanced.categories;
+          console.log('[Search] AI Enhanced:', enhanced);
+        } catch (error) {
+          console.warn('[Search] AI enhancement failed, using basic search:', error);
+        }
+      }
+
       const contractFilters: ContractFilters = {
         search: filters.query || undefined,
         sources: filters.source.length > 0 ? filters.source : undefined,
-        categories: filters.category.length > 0 ? filters.category : undefined,
+        categories: filters.category.length > 0 ? filters.category : undefined, // Only user-selected categories as filters
         sortBy: filters.sortBy as ContractFilters['sortBy'],
         sortOrder: filters.sortOrder as 'asc' | 'desc',
         page,
-        limit: 10
+        limit: 10,
+        enhancedKeywords,
+        enhancedSuppliers,
+        enhancedCategories // AI categories used for search, not filtering
       };
       const results = await ContractService.getContracts(contractFilters);
       setSearchResults(results);
@@ -239,6 +262,23 @@ export default function SearchPage() {
                 )}
               </div>
             </form>
+
+            {/* AI Enhancement Toggle */}
+            <div className="mt-4 flex items-center justify-center gap-2">
+              <Checkbox
+                id="ai-enhance"
+                checked={filters.enhanceQuery ?? true}
+                onCheckedChange={(checked) => setFilters(prev => ({ ...prev, enhanceQuery: !!checked }))}
+                className="border-white data-[state=checked]:bg-white data-[state=checked]:text-blue-600"
+              />
+              <Label htmlFor="ai-enhance" className="text-sm cursor-pointer flex items-center gap-1">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                AI-Enhanced Search
+                <span className="text-xs opacity-80">(finds related products & categories)</span>
+              </Label>
+            </div>
           </div>
         </div>
       </section>

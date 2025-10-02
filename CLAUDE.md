@@ -8,7 +8,7 @@ A production-ready government contract search platform built with Next.js 15, Ty
 
 **Live URL**: https://www.understoryanalytics.com
 **Status**: Production with live Stripe payments, webhooks, and Vercel Analytics
-**Last Updated**: October 1, 2025 (Category filtering & splitting implemented)
+**Last Updated**: October 1, 2025 (AI-enhanced search implemented)
 
 ## Essential Commands
 
@@ -31,6 +31,13 @@ npm run db-stats                                                   # Show databa
 node scripts/check-schema.js                                       # Verify database schema
 node scripts/import-contracts-fixed.js import <csv-file>          # Import contracts from CSV (recommended)
 node scripts/import-contracts-fixed.js stats                       # Show import statistics
+```
+
+### AI Search Enhancement
+```bash
+npm run enrich-tags                                                # Extract product tags from contracts (~$0.50)
+npm run enrich-tags -- --limit=10                                  # Test with 10 contracts
+npm run test-query-enhancement                                     # Test real-time query enhancement
 ```
 
 ### MCP & Setup
@@ -98,7 +105,17 @@ npm run deploy-schema    # Deploy database schema
   - Includes all new schema fields: eligibleIndustries, contractType, geographicCoverage, diversityStatus
 
 - **Search & Filtering**:
-  - Full-text search across title, description, supplier_name
+  - **AI-Enhanced Search** (Phase 2, Oct 2025):
+    - Real-time query enhancement using Claude Haiku 3.5
+    - Expands user queries with related categories, synonyms, suppliers
+    - 5-minute cache reduces API costs by ~50%
+    - Cost: ~$0.0003 per search (~$3/month for 10K searches)
+    - Enabled by default, users can toggle off
+  - **Product Tags** (Phase 1, ready to deploy):
+    - AI-extracted keywords stored in `product_tags` TEXT[] column
+    - Enables "laptops" to find "Technology Equipment" contracts
+    - One-time extraction cost: ~$0.50 for all 1,357 contracts
+  - Full-text search across title, description, supplier_name, product_tags
   - Date range filtering on start_date/end_date
   - Source filtering with DB name translation (OMNIA Partners ↔ OMNIA)
   - Category filtering with partial matching (supports multi-category contracts)
@@ -139,6 +156,7 @@ SUPABASE_SERVICE_ROLE_KEY=<service_role_key>
 NEXT_PUBLIC_SITE_URL=https://www.understoryanalytics.com
 STRIPE_SECRET_KEY=<live_key>
 STRIPE_WEBHOOK_SECRET=<webhook_secret>
+ANTHROPIC_API_KEY=<claude_api_key>  # For AI-enhanced search (optional)
 ```
 
 ## Database Schema
@@ -162,6 +180,7 @@ CREATE TABLE contracts (
     diversity_status TEXT,
     contract_url TEXT,
     supplier_url TEXT,
+    product_tags TEXT[],  -- AI-extracted product keywords (Oct 2025)
     status TEXT DEFAULT 'active',
     created_at TIMESTAMP,
     updated_at TIMESTAMP
@@ -171,6 +190,7 @@ CREATE TABLE contracts (
 **Indexes**:
 - Performance: source, supplier_normalized, category, status, end_date, contract_number
 - Full-text: GIN indexes on title, description, supplier_name
+- AI Search: GIN index on product_tags (for array contains queries)
 - Unique constraint: (source, contract_number)
 
 ### Users Table
@@ -257,6 +277,16 @@ Supabase Auth settings:
 6. **Frontend Source Mapping**: Display names differ from database values (OMNIA → OMNIA Partners)
 
 7. **Vercel Analytics Integration**: Client-side tracking for page views and user behavior
+
+8. **AI-Enhanced Search** (October 2025): Real-time Claude AI query expansion
+   - Uses Claude Haiku 3.5 via server-side API route
+   - Expands searches with related keywords, suppliers, and categories
+   - ~$0.0003 per search (~$1.50/month @ 10K searches)
+   - Client-side caching (5-min TTL) reduces costs ~50%
+   - AI categories added to search conditions (OR), not filters (AND) - this broadens results
+   - Easy to disable: Remove `ANTHROPIC_API_KEY` from `.env.local`
+   - Perfect for paid tier differentiation
+   - See `AI_SEARCH_README.md` for full documentation
 
 ## Common Gotchas
 
