@@ -102,9 +102,6 @@ export default function Home() {
       {/* Sources Section */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">
-            Trusted Contract Sources
-          </h2>
           <div className="flex flex-wrap justify-center items-center gap-8">
             {availableSources.map((source) => (
               <div key={source} className="flex items-center justify-center px-8 py-4 bg-white border border-gray-200 rounded-lg shadow-sm">
