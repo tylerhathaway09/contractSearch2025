@@ -107,8 +107,8 @@ export default function Home() {
           </h2>
           <div className="flex flex-wrap justify-center items-center gap-8">
             {availableSources.map((source) => (
-              <div key={source} className="flex items-center justify-center p-4 bg-gray-50 rounded-lg">
-                <span className="font-semibold text-gray-700">{source}</span>
+              <div key={source} className="flex items-center justify-center px-8 py-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                <span className="font-semibold text-gray-900 text-lg">{source}</span>
               </div>
             ))}
           </div>
