@@ -185,6 +185,7 @@ export default function SearchPage() {
       category: [],
       sortBy: 'relevance',
       sortOrder: 'desc',
+      enhanceQuery: true,
     });
   };
 
