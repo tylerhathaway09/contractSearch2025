@@ -350,6 +350,55 @@ All missing data consistently displays **"Not Provided"** to:
 
 ## Recent Updates (October 2025)
 
+### AI-Enhanced Search Implementation (October 2, 2025)
+
+**What We Built:**
+- Real-time query expansion using Claude Haiku 3.5 AI
+- Searches for "laptops" now find contracts with "notebooks", "portable computers", "mobile workstations"
+- Server-side API route for secure Claude API integration
+- Client-side caching (5-min TTL) reduces costs by ~50%
+- Cost: ~$0.0003 per search (~$1.50/month @ 10K searches)
+
+**Technical Implementation:**
+1. **API Route** (`src/app/api/enhance-query/route.ts`)
+   - Server-side Claude Haiku 3.5 calls
+   - Returns expanded keywords, suppliers, and categories
+   - Auto-disables if `ANTHROPIC_API_KEY` not set
+
+2. **Query Enhancer** (`src/lib/queryEnhancer.ts`)
+   - Client-side caching wrapper (5-min TTL)
+   - Graceful error handling
+
+3. **Contract Service Updates** (`src/lib/contractService.ts`)
+   - Added `enhancedKeywords`, `enhancedSuppliers`, `enhancedCategories` to filters
+   - **Key Decision**: AI categories added to search conditions (OR), NOT filters (AND)
+   - This broadens results instead of narrowing them
+
+4. **Search UI** (`src/app/search/page.tsx`)
+   - AI toggle (enabled by default)
+   - Falls back to basic search on errors
+
+**Key Problems Solved:**
+- ❌ **Initial Problem**: AI categories used as filters (AND) → narrowed to 0 results
+- ✅ **Solution**: Changed to add categories to search conditions (OR) → broadens results
+- ❌ **Initial Problem**: AI too broad (suggested "Technology Solutions" matched restroom contracts)
+- ✅ **Solution**: Conservative prompting (0-1 categories max, 4-8 specific keywords only)
+
+**Production Deployment:**
+- ✅ Code pushed to GitHub
+- ⏳ **Action Required**: Add `ANTHROPIC_API_KEY` to Vercel environment variables
+  - Go to Vercel Dashboard → Settings → Environment Variables
+  - Add `ANTHROPIC_API_KEY` with your Claude API key
+  - Select all environments (Production, Preview, Development)
+  - Redeploy for changes to take effect
+- 📚 Documentation: `AI_SEARCH_README.md` (technical), `AI_SEARCH_USER_GUIDE.md` (user-facing)
+
+**To Disable AI Search:**
+- Remove `ANTHROPIC_API_KEY` from `.env.local` (local) or Vercel (production)
+- App gracefully falls back to basic search
+
+## Recent Updates (October 2025)
+
 ### Schema Migration & Data Updates
 - **Database Schema**: Migrated from old schema to flattened structure (Oct 1, 2025)
   - Removed `contract_items` JSONB table
