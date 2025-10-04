@@ -40,15 +40,15 @@ export default function SavedContractsPage() {
           const contract = savedData.contracts;
           return {
             id: String(contract.id),
-            source: contract.purchasing_org as 'E&I' | 'Sourcewell' | 'OMNIA Partners',
+            source: contract.source as 'E&I' | 'Sourcewell' | 'OMNIA Partners',
             contractId: String(contract.contract_number || contract.id),
-            url: String((contract.document_urls as unknown[])?.[0] || '#'),
-            supplierName: String(contract.vendor_name || 'Unknown Supplier'),
-            contractTitle: String(contract.contract_title || 'Untitled Contract'),
+            url: String(contract.contract_url || '#'),
+            supplierName: String(contract.supplier_name || 'Unknown Supplier'),
+            contractTitle: String(contract.title || 'Untitled Contract'),
             contractDescription: String(contract.description || 'No description available'),
-            category: String((contract.items as Array<{category?: string}>)?.[0]?.category || 'Other'),
-            startDate: contract.contract_start_date ? new Date(String(contract.contract_start_date)) : new Date(),
-            endDate: contract.contract_end_date ? new Date(String(contract.contract_end_date)) : new Date(),
+            category: String(contract.category || 'Other'),
+            startDate: contract.start_date ? new Date(String(contract.start_date)) : null,
+            endDate: contract.end_date ? new Date(String(contract.end_date)) : null,
             createdAt: new Date(String(contract.created_at)),
             updatedAt: new Date(String(contract.updated_at || contract.created_at)),
           };
