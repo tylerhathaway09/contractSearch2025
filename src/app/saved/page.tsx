@@ -30,7 +30,7 @@ export default function SavedContractsPage() {
         const { data, error } = await getSavedContracts(user.id);
 
         if (error) {
-          console.error('Error loading saved contracts:', error);
+          console.error('Error loading saved contracts:', JSON.stringify(error, null, 2));
           return;
         }
 
