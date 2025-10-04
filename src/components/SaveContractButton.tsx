@@ -96,15 +96,7 @@ export function SaveContractButton({ contractId }: SaveContractButtonProps) {
           </>
         )}
       </Button>
-      {error && profile?.subscription_status !== 'pro' && (
-        <p className="text-xs text-red-600 mt-1">
-          {error}{' '}
-          <Link href="/pricing" className="underline hover:text-red-700">
-            Upgrade to Pro
-          </Link>
-        </p>
-      )}
-      {error && profile?.subscription_status === 'pro' && (
+      {error && (
         <p className="text-xs text-red-600 mt-1">{error}</p>
       )}
     </>

@@ -266,23 +266,9 @@ export const getContractsBySupplier = async (supplier: string, limit = 10) => {
   return { data, error };
 };
 
-// Saved contracts - Pro feature only
+// Saved contracts - Available for all authenticated users
 export const saveContract = async (userId: string, contractId: string) => {
   try {
-    // TESTING: If testing mode is enabled, skip Pro check
-    if (!TESTING_PRO_MODE) {
-      // Check if user is Pro (only in non-testing mode)
-      const { data: user, error: userError } = await supabase
-        .from('users')
-        .select('subscription_status')
-        .eq('id', userId)
-        .single();
-
-      if (userError || user?.subscription_status !== 'pro') {
-        return { data: null, error: { message: 'Pro subscription required for saving contracts' } };
-      }
-    }
-
     // Save to database using proper saved_contracts table
     const { data, error } = await supabase
       .from('saved_contracts')
@@ -311,17 +297,6 @@ export const saveContract = async (userId: string, contractId: string) => {
 
 export const removeSavedContract = async (userId: string, contractId: string) => {
   try {
-    // Check if user is Pro
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('subscription_status')
-      .eq('id', userId)
-      .single();
-
-    if (userError || user?.subscription_status !== 'pro') {
-      return { error: { message: 'Pro subscription required' } };
-    }
-
     // Remove from database
     const { error } = await supabase
       .from('saved_contracts')
@@ -343,17 +318,6 @@ export const removeSavedContract = async (userId: string, contractId: string) =>
 
 export const getSavedContracts = async (userId: string) => {
   try {
-    // Check if user is Pro
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('subscription_status')
-      .eq('id', userId)
-      .single();
-
-    if (userError || user?.subscription_status !== 'pro') {
-      return { data: [], error: null };
-    }
-
     // Fetch saved contracts with contract details using a JOIN
     const { data: savedContracts, error } = await supabase
       .from('saved_contracts')
@@ -401,17 +365,6 @@ export const getSavedContracts = async (userId: string) => {
 
 export const isContractSaved = async (userId: string, contractId: string) => {
   try {
-    // Check if user is Pro
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('subscription_status')
-      .eq('id', userId)
-      .single();
-
-    if (userError || user?.subscription_status !== 'pro') {
-      return { data: false, error: null };
-    }
-
     // Check if contract is saved in database
     const { data: savedContract, error } = await supabase
       .from('saved_contracts')
