@@ -324,7 +324,7 @@ export const getSavedContracts = async (userId: string) => {
       .select(`
         id,
         saved_at,
-        contracts (
+        contracts:contract_id (
           id,
           source,
           supplier_name,
