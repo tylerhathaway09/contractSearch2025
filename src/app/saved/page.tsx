@@ -35,24 +35,29 @@ export default function SavedContractsPage() {
         }
 
         // Map the saved contracts data to Contract type
-        const contracts: Contract[] = (data || []).map((saved: unknown) => {
-          const savedData = saved as {contracts: Record<string, unknown>};
-          const contract = savedData.contracts;
-          return {
-            id: String(contract.id),
-            source: contract.source as 'E&I' | 'Sourcewell' | 'OMNIA Partners',
-            contractId: String(contract.contract_number || contract.id),
-            url: String(contract.contract_url || '#'),
-            supplierName: String(contract.supplier_name || 'Unknown Supplier'),
-            contractTitle: String(contract.title || 'Untitled Contract'),
-            contractDescription: String(contract.description || 'No description available'),
-            category: String(contract.category || 'Other'),
-            startDate: contract.start_date ? new Date(String(contract.start_date)) : null,
-            endDate: contract.end_date ? new Date(String(contract.end_date)) : null,
-            createdAt: new Date(String(contract.created_at)),
-            updatedAt: new Date(String(contract.updated_at || contract.created_at)),
-          };
-        });
+        const contracts: Contract[] = (data || [])
+          .filter((saved: unknown) => {
+            const savedData = saved as {contracts: Record<string, unknown> | null};
+            return savedData.contracts !== null;
+          })
+          .map((saved: unknown) => {
+            const savedData = saved as {contracts: Record<string, unknown>};
+            const contract = savedData.contracts;
+            return {
+              id: String(contract.id),
+              source: contract.source as 'E&I' | 'Sourcewell' | 'OMNIA Partners',
+              contractId: String(contract.contract_number || contract.id),
+              url: String(contract.contract_url || '#'),
+              supplierName: String(contract.supplier_name || 'Unknown Supplier'),
+              contractTitle: String(contract.title || 'Untitled Contract'),
+              contractDescription: String(contract.description || 'No description available'),
+              category: String(contract.category || 'Other'),
+              startDate: contract.start_date ? new Date(String(contract.start_date)) : null,
+              endDate: contract.end_date ? new Date(String(contract.end_date)) : null,
+              createdAt: new Date(String(contract.created_at)),
+              updatedAt: new Date(String(contract.updated_at || contract.created_at)),
+            };
+          });
 
         setSavedContracts(contracts);
       } catch (error) {

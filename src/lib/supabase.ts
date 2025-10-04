@@ -318,8 +318,8 @@ export const removeSavedContract = async (userId: string, contractId: string) =>
 
 export const getSavedContracts = async (userId: string) => {
   try {
-    // Fetch saved contracts with contract details using a JOIN
-    const { data: savedContracts, error } = await supabase
+    // First, try the JOIN approach (requires foreign keys)
+    const { data: joinData, error: joinError } = await supabase
       .from('saved_contracts')
       .select(`
         id,
@@ -350,13 +350,50 @@ export const getSavedContracts = async (userId: string) => {
       .eq('user_id', userId)
       .order('saved_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching saved contracts:', error);
-      return { data: [], error };
+    // If JOIN works, return the data
+    if (!joinError && joinData) {
+      return { data: joinData, error: null };
     }
 
-    // Return the data in the expected format
-    return { data: savedContracts || [], error: null };
+    // Fallback: If JOIN fails (e.g., missing foreign keys), use two-query approach
+    console.log('JOIN query failed, using fallback two-query approach:', joinError?.message);
+
+    // Step 1: Get saved contract IDs and metadata
+    const { data: savedIds, error: idsError } = await supabase
+      .from('saved_contracts')
+      .select('id, contract_id, saved_at')
+      .eq('user_id', userId)
+      .order('saved_at', { ascending: false });
+
+    if (idsError) {
+      console.error('Error fetching saved contract IDs:', idsError);
+      return { data: [], error: idsError };
+    }
+
+    if (!savedIds || savedIds.length === 0) {
+      return { data: [], error: null };
+    }
+
+    // Step 2: Get full contract details
+    const contractIds = savedIds.map(s => s.contract_id);
+    const { data: contracts, error: contractsError } = await supabase
+      .from('contracts')
+      .select('*')
+      .in('id', contractIds);
+
+    if (contractsError) {
+      console.error('Error fetching contract details:', contractsError);
+      return { data: [], error: contractsError };
+    }
+
+    // Step 3: Join data in JavaScript
+    const result = savedIds.map(saved => ({
+      id: saved.id,
+      saved_at: saved.saved_at,
+      contracts: contracts?.find(c => c.id === saved.contract_id) || null
+    }));
+
+    return { data: result, error: null };
   } catch (error) {
     console.error('Error getting saved contracts:', error);
     return { data: [], error };
