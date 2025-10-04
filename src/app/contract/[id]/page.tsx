@@ -6,6 +6,7 @@ import { ContractService } from '@/lib/contractService';
 import { formatDateRange, getDaysUntilExpiration, isContractExpiringSoon } from '@/lib/contractUtils';
 import { splitCategories } from '@/lib/categoryUtils';
 import Link from 'next/link';
+import { SaveContractButton } from '@/components/SaveContractButton';
 
 interface ContractPageProps {
   params: Promise<{
@@ -143,9 +144,7 @@ export default async function ContractPage({ params }: ContractPageProps) {
                 <CardTitle>Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button className="w-full" variant="outline">
-                  Save Contract
-                </Button>
+                <SaveContractButton contractId={contract.id} />
                 <Button className="w-full" variant="outline">
                   Share Contract
                 </Button>
