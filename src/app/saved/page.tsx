@@ -12,7 +12,7 @@ import { Contract } from '@/types';
 import { splitCategories } from '@/lib/categoryUtils';
 
 export default function SavedContractsPage() {
-  const { user } = useAuth();
+  const { user, refreshSavedCount } = useAuth();
   const [savedContracts, setSavedContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -80,6 +80,7 @@ export default function SavedContractsPage() {
         return;
       }
       setRefreshKey(prev => prev + 1);
+      await refreshSavedCount();
     } catch (error) {
       console.error('Error removing saved contract:', error);
     }
