@@ -6,9 +6,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { getSavedContracts, getSearchLimitInfo } from '@/lib/supabase';
+import { getSavedContracts, getSearchLimitInfo, removeSavedContract } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Contract } from '@/types';
+import { splitCategories } from '@/lib/categoryUtils';
 
 // Component that uses useSearchParams wrapped in Suspense
 function SuccessMessageHandler({ onMessage }: { onMessage: (message: string) => void }) {
@@ -28,11 +29,12 @@ function SuccessMessageHandler({ onMessage }: { onMessage: (message: string) => 
 }
 
 function DashboardContent() {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, refreshSavedCount } = useAuth();
   const [savedContracts, setSavedContracts] = useState<Contract[]>([]);
   const [searchLimitInfo, setSearchLimitInfo] = useState<{can_search: boolean, remaining: number, limit_count: number, is_pro: boolean} | null>(null);
   const [loading, setLoading] = useState(true);
   const [successMessage, setSuccessMessage] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0);
   const router = useRouter();
 
   useEffect(() => {
@@ -88,7 +90,7 @@ function DashboardContent() {
     };
 
     loadDashboardData();
-  }, [user, router]);
+  }, [user, router, refreshKey]);
 
   const handleLogout = async () => {
     try {
@@ -96,6 +98,22 @@ function DashboardContent() {
       router.push('/');
     } catch (error) {
       console.error('Logout error:', error);
+    }
+  };
+
+  const handleRemoveContract = async (contractId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await removeSavedContract(user.id, contractId);
+      if (error) {
+        console.error('Error removing saved contract:', error);
+        return;
+      }
+      setRefreshKey(prev => prev + 1);
+      await refreshSavedCount();
+    } catch (error) {
+      console.error('Error removing saved contract:', error);
     }
   };
 
@@ -188,34 +206,79 @@ function DashboardContent() {
               </CardContent>
             </Card>
 
-            {/* Saved Contracts Quick Access */}
+            {/* Saved Contracts */}
             <Card>
               <CardHeader>
-                <CardTitle>Saved Contracts</CardTitle>
-                <CardDescription>
-                  {savedContracts.length} contract{savedContracts.length !== 1 ? 's' : ''} saved
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Saved Contracts</CardTitle>
+                    <CardDescription>
+                      {savedContracts.length} contract{savedContracts.length !== 1 ? 's' : ''} saved
+                    </CardDescription>
+                  </div>
+                  {savedContracts.length > 0 && (
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href="/saved">View All</Link>
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8">
-                  <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                  </svg>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    {savedContracts.length > 0 ? 'View Your Saved Contracts' : 'No saved contracts yet'}
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-4">
-                    {savedContracts.length > 0 
-                      ? 'Access and manage all your saved contracts in one place.'
-                      : 'Start saving contracts to access them quickly from your dashboard.'
-                    }
-                  </p>
-                  <Button asChild>
-                    <Link href="/saved">
-                      {savedContracts.length > 0 ? 'View Saved Contracts' : 'Search Contracts'}
-                    </Link>
-                  </Button>
-                </div>
+                {savedContracts.length > 0 ? (
+                  <div className="space-y-3">
+                    {savedContracts.slice(0, 5).map((contract) => (
+                      <div key={contract.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                              <Badge variant="secondary" className="text-xs">{contract.source}</Badge>
+                              {splitCategories(contract.category).map(cat => (
+                                <Badge key={cat} variant="outline" className="text-xs">{cat}</Badge>
+                              ))}
+                            </div>
+                            <Link
+                              href={`/contract/${contract.id}`}
+                              className="text-sm font-medium text-gray-900 hover:text-blue-600 transition-colors line-clamp-1"
+                            >
+                              {contract.contractTitle}
+                            </Link>
+                            <p className="text-xs text-gray-600 mt-1">{contract.supplierName}</p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveContract(contract.id)}
+                            className="shrink-0 text-gray-500 hover:text-red-600"
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    {savedContracts.length > 5 && (
+                      <div className="text-center pt-2">
+                        <Button variant="ghost" size="sm" asChild>
+                          <Link href="/saved">
+                            View all {savedContracts.length} contracts →
+                          </Link>
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No saved contracts yet</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Start saving contracts to access them quickly from your dashboard.
+                    </p>
+                    <Button asChild>
+                      <Link href="/search">Search Contracts</Link>
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
