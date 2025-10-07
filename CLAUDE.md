@@ -8,7 +8,7 @@ A production-ready government contract search platform built with Next.js 15, Ty
 
 **Live URL**: https://www.understoryanalytics.com
 **Status**: Production with live Stripe payments, webhooks, and Vercel Analytics
-**Last Updated**: October 1, 2025 (AI-enhanced search implemented)
+**Last Updated**: October 7, 2025 (Dashboard bookmark display + ESLint fixes)
 
 ## Essential Commands
 
@@ -52,9 +52,11 @@ npm run deploy-schema    # Deploy database schema
 ### Authentication & User Management
 - **AuthContext** (`src/contexts/AuthContext.tsx`): Global auth state using Supabase Auth
   - Manages user session and profile data
-  - Provides `user`, `profile`, `loading`, `signOut`, and `refreshProfile`
+  - Provides `user`, `profile`, `loading`, `savedCount`, `signOut`, `refreshProfile`, and `refreshSavedCount`
   - Profile includes subscription status synchronized with Stripe
+  - Tracks saved contracts count with `savedCount` derived from `savedContracts` state
   - Has testing override mode (`TESTING_PRO_MODE`) for development
+  - **Important**: Uses `useCallback` for `loadSavedContracts` to prevent dependency warnings
 
 - **Auth Flow**:
   1. User signs up → Email verification sent
@@ -92,9 +94,13 @@ npm run deploy-schema    # Deploy database schema
   - Resets monthly based on `created_at` timestamp
 
 - **Saved Contracts**:
-  - Pro-only feature enforced in both frontend and backend
-  - Uses JOIN query to fetch contract details with saved metadata
+  - Available for all authenticated users (Pro check removed Oct 2025)
+  - Uses two-query fallback approach when JOIN fails (foreign key issues)
+  - **Query Strategy**:
+    1. First attempt: JOIN query (`contracts:contract_id`)
+    2. Fallback: Fetch saved IDs, then contract details, join in JavaScript
   - Unique constraint prevents duplicate saves
+  - Returns `{ id, saved_at, contracts: {...} }` structure
 
 ### Contract Service Layer (`src/lib/contractService.ts`)
 - **ContractService class**: Central API for contract operations
@@ -135,7 +141,7 @@ npm run deploy-schema    # Deploy database schema
 - `/search` - Main search interface with filters
 - `/contract/[id]` - Dynamic contract detail pages
 - `/dashboard` - User account and usage stats
-- `/saved` - Bookmarked contracts (Pro only)
+- `/saved` - Bookmarked contracts (all authenticated users)
 - `/pricing` - Subscription plans
 - `/login`, `/signup` - Authentication
 - `/account/billing` - Stripe billing portal
@@ -288,6 +294,12 @@ Supabase Auth settings:
    - Perfect for paid tier differentiation
    - See `AI_SEARCH_README.md` for full documentation
 
+9. **Saved Contracts Two-Query Fallback** (October 2025): Robust bookmark retrieval
+   - Primary: JOIN query for optimal performance
+   - Fallback: Separate queries + JavaScript join when foreign keys missing
+   - Gracefully handles database schema inconsistencies
+   - Returns consistent `{ id, saved_at, contracts: {...} }` structure
+
 ## Common Gotchas
 
 - Database column names use snake_case (e.g., `supplier_name`)
@@ -296,6 +308,9 @@ Supabase Auth settings:
 - Email redirects must match Supabase Site URL configuration
 - Webhook signature validation requires raw request body
 - Free tier search limit resets based on calendar month, not rolling 30 days
+- **ESLint**: Avoid `any` types - use `unknown` and type assertions instead
+- **React Hooks**: Use `useCallback` for functions in dependency arrays to prevent infinite loops
+- **Saved Contracts**: Always filter out `null` contracts from `getSavedContracts()` results
 
 ### Working with Incomplete Data
 - **NEVER generate fake data** for missing fields - this is a core business requirement
@@ -349,6 +364,48 @@ All missing data consistently displays **"Not Provided"** to:
 4. Drive GPOs to submit complete contract information
 
 ## Recent Updates (October 2025)
+
+### Dashboard Bookmark Display & ESLint Fixes (October 7, 2025)
+
+**What We Built:**
+- Dashboard now displays up to 5 saved contracts inline with remove buttons
+- Hidden counter badge on header heart icon (issue with real-time updates persists)
+- Fixed all ESLint errors blocking production builds
+
+**Technical Implementation:**
+1. **Dashboard** (`src/app/dashboard/page.tsx`)
+   - Displays first 5 saved contracts as compact cards
+   - Each card shows: source badge, category badge(s), title (clickable), supplier, remove button
+   - "View All" button if more than 5 contracts saved
+   - Remove button triggers `handleRemoveContract` which refreshes both local state and AuthContext
+
+2. **AuthContext Updates** (`src/contexts/AuthContext.tsx`)
+   - Added `savedCount` to context (derived from `savedContracts.length`)
+   - Added `refreshSavedCount()` function to reload saved contracts
+   - Uses `useCallback` for `loadSavedContracts` to prevent dependency warnings
+   - Extensive debugging logs for troubleshooting state updates
+
+3. **Header Component** (`src/components/Header.tsx`)
+   - Removed counter badge from heart icon (counter update issue unresolved)
+   - Added debugging useEffect to track savedCount changes
+
+4. **ESLint Fixes**
+   - Replaced `any` types with `unknown` in AuthContext
+   - Added proper dependency tracking with `useCallback`
+   - Removed unused imports in SaveContractButton
+
+**Key Issues Resolved:**
+- ✅ Dashboard now shows saved contracts directly (not just count)
+- ✅ Remove functionality works from dashboard
+- ✅ Production builds pass ESLint validation
+- ⏳ **Known Issue**: Header counter badge doesn't update in real-time when adding bookmarks (only on page refresh)
+
+**Files Modified:**
+- `src/app/dashboard/page.tsx` - Display saved contracts inline
+- `src/contexts/AuthContext.tsx` - Added savedCount tracking
+- `src/components/Header.tsx` - Removed counter badge
+- `src/components/SaveContractButton.tsx` - Cleanup unused imports
+- `src/app/saved/page.tsx` - Call refreshSavedCount on removal
 
 ### AI-Enhanced Search Implementation (October 2, 2025)
 
