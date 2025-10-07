@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useMemo } from 'react';
+import { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase, getUserProfile, getSavedContracts } from '@/lib/supabase';
 import { User as UserProfile } from '@/types/supabase';
@@ -24,7 +24,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [savedContracts, setSavedContracts] = useState<any[]>([]); // Store full contract data like dashboard
+  const [savedContracts, setSavedContracts] = useState<unknown[]>([]); // Store full contract data like dashboard
 
   // Derive count from savedContracts array using useMemo to ensure proper re-rendering
   const savedCount = useMemo(() => {
@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [savedContracts]);
 
   // Helper function to load saved contracts (full data, not just count)
-  const loadSavedContracts = async (userId: string) => {
+  const loadSavedContracts = useCallback(async (userId: string) => {
     try {
       console.log('[AuthContext] Loading saved contracts for user:', userId);
 
@@ -48,11 +48,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Filter out null contracts (same logic as dashboard)
-      const validContracts = (data || []).filter((saved: any) => saved.contracts !== null);
+      const validContracts = (data || []).filter((saved: unknown) => {
+        const savedData = saved as { contracts: unknown };
+        return savedData.contracts !== null;
+      });
 
       console.log('[AuthContext] Loaded', validContracts.length, 'saved contracts for user:', userId);
-      console.log('[AuthContext] Previous savedContracts.length:', savedContracts.length);
-      console.log('[AuthContext] New validContracts.length:', validContracts.length);
 
       // Force new array reference to ensure React detects the change
       setSavedContracts([...validContracts]);
@@ -61,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('[AuthContext] Error loading saved contracts:', error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     console.log('[AuthContext] useEffect running - initializing session');
@@ -125,7 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [loadSavedContracts]);
 
   const loadUserProfile = async (userId: string) => {
     try {

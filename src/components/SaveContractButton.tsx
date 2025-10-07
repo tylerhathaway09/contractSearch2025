@@ -4,14 +4,13 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { saveContract, removeSavedContract, isContractSaved } from '@/lib/supabase';
-import Link from 'next/link';
 
 interface SaveContractButtonProps {
   contractId: string;
 }
 
 export function SaveContractButton({ contractId }: SaveContractButtonProps) {
-  const { user, profile } = useAuth();
+  const { user, refreshSavedCount } = useAuth();
   const [isSaved, setIsSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,13 +42,19 @@ export function SaveContractButton({ contractId }: SaveContractButtonProps) {
           return;
         }
         setIsSaved(false);
+        await refreshSavedCount();
       } else {
+        console.log('[SaveButton] Saving contract...');
         const { error } = await saveContract(user.id, contractId);
         if (error) {
+          console.error('[SaveButton] Save error:', error);
           setError((error as { message?: string })?.message || 'Failed to save contract');
           return;
         }
+        console.log('[SaveButton] Contract saved successfully, refreshing count...');
         setIsSaved(true);
+        await refreshSavedCount();
+        console.log('[SaveButton] Count refreshed');
       }
     } catch (err) {
       console.error('Error toggling saved contract:', err);
