@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,11 +22,15 @@ export default function Header() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">CS</span>
-            </div>
-            <span className="text-xl font-bold text-gray-900">ContractSearch</span>
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/understory-logoDark.svg"
+              alt="Understory"
+              width={180}
+              height={40}
+              priority
+              className="h-10 w-auto"
+            />
           </Link>
 
           {/* User Actions */}

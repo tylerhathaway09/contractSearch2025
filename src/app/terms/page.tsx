@@ -9,7 +9,7 @@ export default function TermsOfService() {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Acceptance of Terms</h2>
           <p className="text-gray-700 mb-4">
-            By accessing and using ContractSearch (the &quot;Service&quot;), operated by Understory Analytics (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;),
+            By accessing and using Understory (the &quot;Service&quot;), operated by Understory Analytics (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;),
             you accept and agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our Service.
           </p>
         </section>
@@ -17,7 +17,7 @@ export default function TermsOfService() {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">2. Description of Service</h2>
           <p className="text-gray-700 mb-4">
-            ContractSearch provides an aggregated database of government and cooperative purchasing contracts from various
+            Understory provides an aggregated database of government and cooperative purchasing contracts from various
             Group Purchasing Organizations (GPOs) including E&I, Sourcewell, and OMNIA Partners. Our Service allows users to
             search, filter, and access contract information.
           </p>

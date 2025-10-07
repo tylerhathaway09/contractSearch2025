@@ -52,7 +52,7 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Why Choose ContractSearch?
+              Why Choose Understory?
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               We aggregate contracts from multiple sources to give you the most comprehensive view of available opportunities.

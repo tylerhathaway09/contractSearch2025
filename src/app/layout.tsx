@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ContractSearch - Government Contract Aggregator",
-  description: "Find and compare government contracts from E&I, Sourcewell, OMNIA Partners, and more.",
+  title: "Understory - Government Contract Aggregator",
+  description: "Find and compare government contracts from E&I, Sourcewell, OMNIA Partners, and more with Understory Analytics.",
 };
 
 export default function RootLayout({

@@ -9,12 +9,12 @@ export default function PrivacyPolicy() {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Introduction</h2>
           <p className="text-gray-700 mb-4">
-            Understory Analytics (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) operates ContractSearch. This Privacy Policy explains how we collect,
+            Understory Analytics (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) operates Understory. This Privacy Policy explains how we collect,
             use, disclose, and safeguard your information when you use our Service. We are committed to protecting your
             privacy and ensuring transparency about our data practices.
           </p>
           <p className="text-gray-700 mb-4">
-            By using ContractSearch, you agree to the collection and use of information in accordance with this policy.
+            By using Understory, you agree to the collection and use of information in accordance with this policy.
           </p>
         </section>
 
