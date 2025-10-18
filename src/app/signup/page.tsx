@@ -81,11 +81,11 @@ export default function SignupPage() {
         <div className="text-center">
           <div className="flex justify-center">
             <div className="h-12 w-12 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">CS</span>
+              <span className="text-white font-bold text-lg">UA</span>
             </div>
           </div>
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
-            Create your account
+            Start Searching Higher Ed Contracts
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             Or{' '}
@@ -99,7 +99,7 @@ export default function SignupPage() {
           <CardHeader>
             <CardTitle>Sign Up</CardTitle>
             <CardDescription>
-              Create a free account to start searching contracts
+              Create a free account to search 1,357 higher education contracts
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -205,13 +205,13 @@ export default function SignupPage() {
                 <svg className="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
-                Access to all contract sources
+                Access to E&I, Sourcewell, and OMNIA contracts
               </li>
               <li className="flex items-center">
                 <svg className="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
-                Advanced search filters
+                Filter by category, supplier, and date
               </li>
             </ul>
           </CardContent>

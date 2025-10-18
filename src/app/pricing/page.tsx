@@ -21,19 +21,19 @@ export default function PricingPage() {
   const features = {
     free: [
       '10 contract searches per month',
-      'Access to all contract sources',
-      'Advanced search filters',
-      'Contract details view',
-      'Basic support'
+      'Access to all 1,357 contracts',
+      'Filter by category, supplier, and date',
+      'View contract details and links',
+      'Email support'
     ],
     pro: [
       'Unlimited contract searches',
-      'Save & bookmark contracts',
-      'Search history tracking',
-      'Export search results',
-      'Priority support',
-      'Advanced analytics',
-      'Email alerts for new contracts'
+      'Save & bookmark contracts for your team',
+      'Track search history across departments',
+      'Export results for procurement reviews',
+      'Priority email support',
+      'Advanced search analytics',
+      'Email alerts for expiring contracts'
     ]
   };
 
@@ -42,10 +42,10 @@ export default function PricingPage() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Choose Your Plan
+            Plans for Every Campus
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Find the perfect plan for your contract search needs. Upgrade anytime to unlock more features.
+            Whether you&apos;re a small department or a campus-wide procurement team, find the right plan to streamline your contract search.
           </p>
         </div>
 
@@ -54,7 +54,7 @@ export default function PricingPage() {
           <Card className="relative">
             <CardHeader className="text-center">
               <CardTitle className="text-2xl">Free</CardTitle>
-              <CardDescription>Perfect for getting started</CardDescription>
+              <CardDescription>For small departments exploring contracts</CardDescription>
               <div className="mt-4">
                 <span className="text-4xl font-bold">$0</span>
                 <span className="text-gray-600">/month</span>
@@ -101,7 +101,7 @@ export default function PricingPage() {
             </div>
             <CardHeader className="text-center">
               <CardTitle className="text-2xl text-blue-600">Pro</CardTitle>
-              <CardDescription>For power users and businesses</CardDescription>
+              <CardDescription>For campus procurement teams</CardDescription>
               <div className="mt-4">
                 <div className="flex items-center justify-center gap-2">
                   <div>
@@ -172,8 +172,8 @@ export default function PricingPage() {
               <p className="text-gray-600">Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately.</p>
             </div>
             <div>
-              <h4 className="font-semibold">What happens to my saved contracts if I downgrade?</h4>
-              <p className="text-gray-600">Your saved contracts are preserved, but you won&apos;t be able to add new ones or access existing ones until you upgrade again.</p>
+              <h4 className="font-semibold">Can multiple people from my institution use one account?</h4>
+              <p className="text-gray-600">Each user needs their own account, but Pro members can save and share contract links with their team members via bookmarks and exports.</p>
             </div>
             <div>
               <h4 className="font-semibold">Do you offer refunds?</h4>

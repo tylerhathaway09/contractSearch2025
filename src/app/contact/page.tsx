@@ -6,7 +6,7 @@ export default function Contact() {
       <div className="prose prose-gray max-w-none">
         <section className="mb-8">
           <p className="text-gray-700 mb-6">
-            Have questions, feedback, or need support? We&apos;d love to hear from you!
+            Questions about contracts, need support, or want to discuss how Understory can help your institution? We&apos;d love to hear from you!
           </p>
 
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
@@ -55,7 +55,7 @@ export default function Contact() {
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Partnership Opportunities</h3>
               <p className="text-gray-700">
-                Interested in partnering with ContractSearch or becoming a data provider? Reach out to discuss collaboration
+                Interested in partnering with Understory or becoming a data provider? Reach out to discuss collaboration
                 opportunities at info@understoryanalytics.com.
               </p>
             </div>
